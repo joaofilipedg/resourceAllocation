@@ -1,0 +1,4 @@
+postgresql*
+certs/
+.vscode
+__pycache__
