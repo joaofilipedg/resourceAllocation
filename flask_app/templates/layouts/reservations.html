@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/global.css')}}">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <script type=text/javascript src="{{url_for('static', filename='js/variables.js')}}"></script>
+
+    <!-- DATERANGER PICKER -->
+    <!-- https://www.daterangepicker.com/ -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+
+</head>
+
+<body>
+    <div class="imgcontainer">
+        <img src="{{url_for('static', filename='img/INESCID_logo.png')}}" alt="Avatar" class="avatar">
+
+        
+    </div>
+
+    <h1><span class="welcome">Welcome to the HPCAS Resource Allocation Page</span></h1>
+
+    <div class="container">
+        <p><span class="div-title">Make new reservation:</span></p>
+        <div class="my-div">
+            <form name="new_res_form">
+                <div class="form-body">
+                    <!-- <h3 class="form-label">New Reservation Info</h3> -->
+                    <div class="row">
+                        <div class="col a">
+                            <label class="cell-label">Username</label>
+                            <input type="text" id="username" class="form-control" placeholder="Username">
+                        </div>
+
+                        <div class="col b">
+                            <label class="cell-label">Host</label>
+                            <!-- <input type="text" id="host" class="form-control" placeholder="Host"> -->
+                            <select name="host" id="host">
+-                               {%for host in hosts%}
+                                    <option value={{host}}>{{host}}</option>
+                                {%endfor%}
+                            </select>
+
+                        </div>
+
+                        <div class="col c">
+                            <label class="cell-label">Reservation Type</label>
+                            <!-- <input type="text" id="res_type" class="form-control" placeholder="Reservation Type"> -->
+                            <select name="res_type" id="res_type">
+                                {%for type in res_types%}
+                                    <option value={{type}}>{{type}}</option>
+                                {%endfor%}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col d">
+                            <label class="cell-label">Duration (Start date - End date)</label>
+                            <!-- <input type="datetime-local" id="begin_date" class="form-control" placeholder="Begin Date"> -->
+
+                            <!-- DATERANGER PICKER -->
+                            <input type="text" name="datetimes">
+                            <script>
+                                $(function () {
+                                    $('input[name="datetimes"]').daterangepicker({
+                                        timePicker: true,
+                                        timePicker24Hour: true,
+                                        timePickerIncrement: 30,
+                                        startDate: moment().startOf('hour'),
+                                        endDate: moment().startOf('hour').add(32, 'hour'),
+                                        locale: {
+                                            format: 'DD/M HH:mm'
+                                        }
+                                    });
+                                });
+                            </script>
+                        </div>
+                    
+                        <!-- <div class="col e">
+                            <label class="cell-label">End Date</label>
+                            <input type="datetime-local" id="end_date" class="form-control" placeholder="End Date">
+                        </div>      -->
+                        
+                        <div class="col f">
+
+                            <button type="submit" class="but_res">Confirm Reservation</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <hr>
+    
+    <div class="container">
+        <p><span class="div-title">List of currently free hosts:</span></p>
+        <div class="my-div">
+            <ul>
+                {%for host in free_hosts%}
+                    <li>{{ host }}</li>
+                {%endfor%}
+            </ul>
+        </div>
+    </div>
+    
+    <hr>
+
+    <div  class="container">
+        <p><span class="div-title">List of current reservations:</span></p>
+        <div class="my-div">
+            <table>
+                <tr>
+                    <td>Hostname</td>
+                    <td>Username</td>
+                    <td>Reservatio Type</td>
+                    <td>Start Date</td>
+                    <td>End Date</td>
+                </tr>
+                {%for res in curr_res%}
+                <tr>
+                    {%for val in res%}
+                    <td> {{ val }} </td>
+                    {%endfor%}
+                </tr>
+                {%endfor%}
+            </table>
+        </div>
+    </div>
+    
+</body>
+
+</html>

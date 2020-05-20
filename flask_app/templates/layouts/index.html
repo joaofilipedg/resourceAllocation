@@ -1,21 +1,23 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <link rel="stylesheet" type="text/css" href="/static/css/login.css">
+        <!-- <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/colors.css')}}"> -->
+        <!-- <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/style.css')}}"> -->
+        <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/global.css')}}">
         
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <script type=text/javascript src=/static/js/variables.js></script>
+        <script type=text/javascript src="{{url_for('static', filename='js/variables.js')}}"></script>
 
     </head>
 
     <body>
         <div class="imgcontainer">
-            <img src="/static/img/INESCID_logo.png" alt="Avatar" class="avatar">
+            <img src="{{url_for('static', filename='img/INESCID_logo.png')}}" alt="Avatar" class="avatar">
         </div>
 
-        <h1>Welcome to the HPCAS Resource Allocation Page</h1>
-        <form action="action_page.php" method="post">
+        <h1><span class="welcome">Welcome to the HPCAS Resource Allocation Page</span></h1>
+        <form class="log_form" action="/reservations" method="get">
         
             <div class="container">
                 <label for="uname"><b>Username</b></label>
@@ -25,13 +27,13 @@
                 <input type="password" placeholder="Enter Password" name="psw" required>
         
                 <button type="submit">Login</button>
-                <label>
+                <!-- <label>
                     <input type="checkbox" checked="checked" name="remember"> Remember me
-                </label>
+                </label> -->
             </div>
         
-            <div class="container" style="background-color:#f1f1f1">
-                <button type="button" class="cancelbtn">Cancel</button>
+            <div class="container">
+                <!-- <button type="button" class="cancelbtn">Cancel</button> -->
                 <span id="forgot" class="forgot"></span>
                 <script>
                     document.getElementById("forgot").innerHTML = `Forgot <a href="mailto: ${help_email}">password?</a>`

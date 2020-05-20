@@ -1,0 +1,23 @@
+body {
+    background-image: url(../img/noisy_textures/sol_base03.png);
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.welcome {
+    color: var(--base3);
+}
+
+.container {
+    max-width: inherit;
+}
+
+.my-div {
+    background-image: url(../img/noisy_textures/sol_base1.png);
+}
+
+.div-title{
+    color: var(--base3);
+    font-size: 16pt;
+    font-weight: bold;
+}

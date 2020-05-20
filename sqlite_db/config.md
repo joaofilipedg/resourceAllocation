@@ -25,14 +25,21 @@ CREATE TABLE hosts (
    has_gpu INTEGER NOT NULL,
    has_fpga INTEGER NOT NULL
    );
-CREATE TABLE reservations (
+CREATE TABLE reservation_types (
    id INTEGER PRIMARY KEY,
-   user_id INTEGER,
-   host_id INTEGER,
+   name TEXT,
+   description TEXT
+   );
+CREATE TABLE reservations (
+   id INTEGER PRIMARY KEY AUTOINCREMENT,
+   user_id INTEGER NOT NULL,
+   host_id INTEGER NOT NULL,
+   reservation_type INTEGER NOT NULL,
    begin_date REAL,
    end_date REAL,
    FOREIGN KEY (user_id) REFERENCES users(id),
-   FOREIGN KEY (host_id) REFERENCES hosts(id)
+   FOREIGN KEY (host_id) REFERENCES hosts(id),
+   FOREIGN KEY (reservation_type) REFERENCES reservation_types(id)
    );
 ```
 
@@ -64,5 +71,16 @@ INSERT INTO hosts VALUES
    (18, "alessandra", 1, 0),
    (19, "filipa", 1, 0),
    (20, "venus", 0, 0)
+   ;
+INSERT INTO reservation_types VALUES
+   (1, "Reserved CPU/Full System", "Machine reserved for exclusive/intensive use of CPU (and possibly other components), and in which running a second process significantly alters the results obtained."),
+   (2, "Reserved FPGA", "Machine reserved for the exclusive use of the FPGA. However, other people can use the CPU/GPU/etc, as long as this does not imply a full CPU occupation."),
+   (3, "Reserved GPU" , "Machine reserved for the exclusive use of the GPU. However, other people can use the CPU/FPGA/etc, as long as this does not imply a full CPU occupation."),
+   (4, "Running programs/simulations", "Others can use the machine, but the resources are probably quite busy. Others cannot put the machine in reserved mode."),
+   (5, "Developing", "Others can use the machine, but cannot put the machine in reserved mode.")
+   ;
+INSERT INTO reservations(user_id, host_id, reservation_type, begin_date, end_date) VALUES
+   (1, 3, 1, 9999, 99999),
+   (1, 2, 1, 9999, 99999)
    ;
 ```
