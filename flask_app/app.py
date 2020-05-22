@@ -6,9 +6,9 @@ app = Flask(__name__, static_folder="templates/static")
 db = sql.db_connect("sqlite_db/res_alloc.db")
 
 @app.route('/')
-@app.route('/index')
+@app.route('/login')
 def hello_world():
-    # return render_template('layouts/index.html')
+    # return render_template('layouts/login.html')
     return redirect(url_for('reservations'))
 
 

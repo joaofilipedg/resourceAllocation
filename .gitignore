@@ -1,9 +1,10 @@
 .vscode
 __pycache__
-postgresql*
+postgresql_db/
 *.db
 copy_css*
 sqlite_db/config.md
 config_files/certs/*
 *.png
 !INESCID_logo.png
+sql_changedb.py
