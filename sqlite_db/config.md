@@ -16,6 +16,83 @@ sqlite3 res_alloc.db
 Add tables:
 ```sqlite
 CREATE TABLE users (
+   username TEXT PRIMARY KEY NOT NULL
+   );
+CREATE TABLE hosts (
+   hostname TEXT PRIMARY KEY NOT NULL,
+   has_gpu INTEGER NOT NULL,
+   has_fpga INTEGER NOT NULL
+   );
+CREATE TABLE reservation_types (
+   id INTEGER PRIMARY KEY,
+   name TEXT,
+   description TEXT
+   );
+CREATE TABLE reservations (
+   id INTEGER PRIMARY KEY AUTOINCREMENT,
+   user TEXT NOT NULL,
+   host TEXT NOT NULL,
+   reservation_type INTEGER NOT NULL,
+   begin_date TEXT,
+   end_date TEXT,
+   FOREIGN KEY (user) REFERENCES users(username),
+   FOREIGN KEY (host) REFERENCES hosts(hostname),
+   FOREIGN KEY (reservation_type) REFERENCES reservation_types(id)
+   );
+```
+
+## 3. Fill Tables
+
+```sqlite
+INSERT INTO users VALUES
+   ("joaoguerreiro"),
+   ("difs")
+   ;
+INSERT INTO hosts VALUES
+   ("saturn", 1, 0),
+   ("vanessa", 0, 0),
+   ("adriana", 1, 0),
+   ("liliana", 0, 1),
+   ("diana", 1, 0),
+   ("lagpus", 1, 0),
+   ("mariana", 1, 1),
+   ("gisele", 1, 0),
+   ("fernanda", 1, 0),
+   ("izabel", 1, 0),
+   ("flavia", 1, 0),
+   ("sara", 1, 0),
+   ("elsa", 0, 1),
+   ("daniela", 1, 1),
+   ("jessica", 1, 0),
+   ("andreia", 0, 0),
+   ("martha", 0, 1),
+   ("alessandra", 1, 0),
+   ("filipa", 1, 0),
+   ("venus", 0, 0)
+   ;
+INSERT INTO reservation_types VALUES
+   (1, "Reserved CPU/Full System", "Machine reserved for exclusive/intensive use of CPU (and possibly other components), and in which running a second process significantly alters the results obtained."),
+   (2, "Reserved FPGA", "Machine reserved for the exclusive use of the FPGA. However, other people can use the CPU/GPU/etc, as long as this does not imply a full CPU occupation."),
+   (3, "Reserved GPU" , "Machine reserved for the exclusive use of the GPU. However, other people can use the CPU/FPGA/etc, as long as this does not imply a full CPU occupation."),
+   (4, "Running programs/simulations", "Others can use the machine, but the resources are probably quite busy. Others cannot put the machine in reserved mode."),
+   (5, "Developing", "Others can use the machine, but cannot put the machine in reserved mode.")
+   ;
+INSERT INTO reservations(user_id, host_id, reservation_type, begin_date, end_date) VALUES
+   ("joaoguerreiro", "adriana", 1, 9999, 99999),
+   ("joaoguerreiro", "vanessa", 1, 9999, 99999)
+   ;
+```
+
+## 4. OLDER Tables
+
+Open ``sqlite``:
+```bash
+sqlite3 res_alloc.db
+```
+
+Add tables:
+```sqlite
+CREATE TABLE users (
    id INTEGER PRIMARY KEY,
    username TEXT
    );
@@ -35,15 +112,15 @@ CREATE TABLE reservations (
    user_id INTEGER NOT NULL,
    host_id INTEGER NOT NULL,
    reservation_type INTEGER NOT NULL,
-   begin_date REAL,
-   end_date REAL,
+   begin_date TEXT,
+   end_date TEXT,
    FOREIGN KEY (user_id) REFERENCES users(id),
    FOREIGN KEY (host_id) REFERENCES hosts(id),
    FOREIGN KEY (reservation_type) REFERENCES reservation_types(id)
    );
 ```
 
-## 3. Fill Tables
+## 5. OLDER Fill Tables
 
 ```sqlite
 INSERT INTO users VALUES

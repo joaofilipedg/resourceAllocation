@@ -7,6 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <script type=text/javascript src="{{url_for('static', filename='js/variables.js')}}"></script>
+    <script type=text/javascript src="{{url_for('static', filename='js/functions.js')}}"></script>
 
     <!-- DATERANGER PICKER -->
     <!-- https://www.daterangepicker.com/ -->
@@ -26,35 +27,36 @@
 
     <h1><span class="welcome">Welcome to the HPCAS Resource Allocation Page</span></h1>
 
+
+    <!-- MAKE NEW RESERVATION -->
     <div class="container">
-        <p><span class="div-title">Make new reservation:</span></p>
+        <p><span class="div-title">Make new reservation</span></p>
         <div class="my-div">
-            <form name="new_res_form">
+            <form name="new_res_form" action="/new_reservation" method="post" onsubmit="return verifyReservation()">
                 <div class="form-body">
-                    <!-- <h3 class="form-label">New Reservation Info</h3> -->
                     <div class="row">
                         <div class="col a">
                             <label class="cell-label">Username</label>
-                            <input type="text" id="username" class="form-control" placeholder="Username">
+                            <input type="text" name="username" id="username" class="form-control" placeholder="Username">
                         </div>
 
                         <div class="col b">
                             <label class="cell-label">Host</label>
-                            <!-- <input type="text" id="host" class="form-control" placeholder="Host"> -->
                             <select name="host" id="host">
--                               {%for host in hosts%}
-                                    <option value={{host}}>{{host}}</option>
+                                <option disabled selected value style="display:none"> -- select an option -- </option>
+                                {%for host in hosts%}
+                                <option value={{host}}>{{host}}</option>
                                 {%endfor%}
                             </select>
-
+                            
                         </div>
-
+                        
                         <div class="col c">
                             <label class="cell-label">Reservation Type</label>
-                            <!-- <input type="text" id="res_type" class="form-control" placeholder="Reservation Type"> -->
                             <select name="res_type" id="res_type">
-                                {%for type in res_types%}
-                                    <option value={{type}}>{{type}}</option>
+                                <option disabled selected value style="display:none"> -- select an option -- </option>
+                                {%for i in range(0,num_res_types)%}
+                                    <option value={{res_type_ids[i]}}>{{res_types[i]}}</option>
                                 {%endfor%}
                             </select>
                         </div>
@@ -63,34 +65,28 @@
                     <div class="row">
                         <div class="col d">
                             <label class="cell-label">Duration (Start date - End date)</label>
-                            <!-- <input type="datetime-local" id="begin_date" class="form-control" placeholder="Begin Date"> -->
 
                             <!-- DATERANGER PICKER -->
-                            <input type="text" name="datetimes">
+                            <input type="text" name="datetimes" class="input-daterangepicker">
                             <script>
                                 $(function () {
                                     $('input[name="datetimes"]').daterangepicker({
+                                        maxSpan: {"days": 7},
                                         timePicker: true,
                                         timePicker24Hour: true,
-                                        timePickerIncrement: 30,
+                                        timePickerIncrement: 60,
                                         startDate: moment().startOf('hour'),
                                         endDate: moment().startOf('hour').add(32, 'hour'),
                                         locale: {
-                                            format: 'DD/M HH:mm'
+                                            format: 'YYYY-MM-DD HH:mm'
                                         }
                                     });
                                 });
                             </script>
-                        </div>
-                    
-                        <!-- <div class="col e">
-                            <label class="cell-label">End Date</label>
-                            <input type="datetime-local" id="end_date" class="form-control" placeholder="End Date">
-                        </div>      -->
+                        </div>                
                         
                         <div class="col f">
-
-                            <button type="submit" class="but_res">Confirm Reservation</button>
+                            <button type="submit" id="confirm_res" class="but_res">Confirm Reservation</button>                                                                              
                         </div>
                     </div>
                 </div>
@@ -98,40 +94,80 @@
         </div>
     </div>
     
-    <hr>
-    
+    <!-- <hr> -->
+    <div class="divider div-transparent"></div>
+
+
+    <!-- LIST OF FREE HOSTS -->
     <div class="container">
-        <p><span class="div-title">List of currently free hosts:</span></p>
-        <div class="my-div">
+        <p><span class="div-title">List of currently free hosts</span></p>
+        <div class="free-div">
             <ul>
                 {%for host in free_hosts%}
                     <li>{{ host }}</li>
                 {%endfor%}
             </ul>
         </div>
+        <script>
+            // allow clicking on the list of free hosts to select the host for the new reservation
+            if (first_h) {
+                first_h = false;
+                list_free_hosts = document.querySelector("ul");
+                list_free_hosts.addEventListener(
+                    "click",
+                    function (ev) {
+                        var h_aux = ev.target.firstChild.data;
+                        changeHostSelected(h_aux);
+                    },
+                    false
+                );
+            }
+        </script>
     </div>
     
-    <hr>
+    <!-- <hr> -->
+    <div class="divider div-transparent"></div>
 
+
+    <!-- LIST OF CURRENT RESERVATIONS -->
     <div  class="container">
-        <p><span class="div-title">List of current reservations:</span></p>
+        <p><span class="div-title">List of current reservations</span></p>
         <div class="my-div">
-            <table>
-                <tr>
-                    <td>Hostname</td>
-                    <td>Username</td>
-                    <td>Reservatio Type</td>
-                    <td>Start Date</td>
-                    <td>End Date</td>
-                </tr>
-                {%for res in curr_res%}
-                <tr>
-                    {%for val in res%}
-                    <td> {{ val }} </td>
+            <form name="cancel_res_form" onsubmit="return false">
+                <div class="res-table">
+                    <div class="row">
+                        <div class="col header">Hostname</div>
+                        <div class="col header">Username</div>
+                        <div class="col header">Reservation Type</div>
+                        <div class="col header">Start Date</div>
+                        <div class="col header">End Date</div>
+                    </div>
+                    {%for res in curr_res%}
+                        <hr />
+                        <div class="row">
+                            {%for i in range(0, 5)%}
+                                <div class="col">{{res[i]}}</div>
+                            {%endfor%}
+                            <div class="col">
+                                <button type="submit" class="cancelBtn" name="btncancel" value={{res[5]}}>Cancel</button>
+                            </div>
+                        </div>
                     {%endfor%}
-                </tr>
-                {%endfor%}
-            </table>
+                    <script>
+                        // Need to get the reservation ID to tell the server which one shoulld be canceled
+                        if (first_b) {
+                            first_b = false;
+                            var cancel_buttons = document.getElementsByName("btncancel");
+                            for (i = 0; i < cancel_buttons.length; i++) {
+                                var but_aux = cancel_buttons[i];
+                                but_aux.onclick = function () {
+                                    cancelReservation(this.value);
+                                };
+                            }
+                        }
+                    </script>
+                </div>
+            </form>
         </div>
     </div>
     

@@ -1,5 +1,7 @@
 body {
-    background-image: url(../img/noisy_textures/sol_base03.png);
+    /* background-image: url(../img/noisy_textures/sol_base03.png); */
+    /* background-image: url(../img/noisy_textures/sol_base3.png); */
+    background-color: var(--coolbg);
     max-width: 800px;
     margin: 0 auto;
 }
@@ -10,14 +12,36 @@ body {
 
 .container {
     max-width: inherit;
+    padding: 16px;
 }
 
-.my-div {
-    background-image: url(../img/noisy_textures/sol_base1.png);
-}
+/* .my-div { */
+    /* background-image: url(../img/noisy_textures/sol_base2.png); */
+    /* background-color: #fff; */
+    /* background-color: #fff; */
+    /* color: var(--base03); */
+/* } */
 
 .div-title{
     color: var(--base3);
     font-size: 16pt;
     font-weight: bold;
+}
+
+.divider
+{
+	position: relative;
+	// margin-top: 90px;
+	height: 1px;
+}
+.div-transparent:before
+{
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 5%;
+	right: 5%;
+	width: 90%;
+	height: 1px;
+	background-image: linear-gradient(to right, transparent, var(--base2) , transparent);
 }

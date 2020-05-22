@@ -1,7 +1,9 @@
  /* Bordered form */
 form {
-  border: 3px solid #303030;
-  background-image: url(../img/noisy_textures/sol_base1.png)
+  margin: 3px;
+  /* border: 3px solid #303030; */
+  /* background-image: url(../img/noisy_textures/sol_base1.png); */
+  /* background-color: #fff; */
 }
 
 /* Full-width inputs */
@@ -12,13 +14,26 @@ input[type=text], input[type=password], select{
   display: inline-block;
   border: 1px solid #ccc;
   box-sizing: border-box;
-  background-color: var(--base2);
+  /* background-image: url(../img/noisy_textures/sol_base2.png); */
+  /* background-color: var(--base2); */
+  /* background-color: var(--grey); */
+  background-color: var(--base3);
+}
+
+label {
+  text-align:right;
+  margin-bottom:0;
+  font-size:16px;
+  font-weight: bold;
+  color: var(--base2);
 }
 
 /* Set a style for all buttons */
 button {
   background-color: var(--base03);
+  /* background: url(../img/noisy_textures/sol_base03.png) repeat; */
   color: white;
+  font-weight: bold;
   padding: 14px 20px;
   margin: 8px 0;
   border: none;
@@ -52,20 +67,28 @@ img.avatar {
   border-radius: 0%;
 }
 
-/* Add padding to containers */
-.container {
-  padding: 16px;
+
+.container.login-div {
+    border: 3px solid var(--base3);
+
+}
+
+.container.forgot-div {
+  background-color: var(--base3);
+  display: inline-block;
+  padding: 3px;
+  /* float: right; */
 }
 
 /* The "Forgot password" text */
-span.psw {
-  float: right;
-  padding-top: 16px;
+span.forgot {
+  /* float: right; */
+  padding: 4px;
 }
 
 /* Change styles for span and cancel button on extra small screens */
 @media screen and (max-width: 300px) {
-  span.psw {
+  span.forgot {
     display: block;
     float: none;
   }

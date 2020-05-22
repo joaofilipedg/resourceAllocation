@@ -1,4 +1,9 @@
-postgresql*
-certs/
 .vscode
 __pycache__
+postgresql*
+*.db
+copy_css*
+sqlite_db/config.md
+config_files/certs/*
+*.png
+!INESCID_logo.png

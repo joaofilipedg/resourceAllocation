@@ -12,19 +12,18 @@
   max-width: inherit;
 }
 
-.row {
+.form-body .row {
   grid-column: 1 / -1;
   display: grid;
   grid-template-columns: repeat(3, minmax(100px, 1fr));
   /* vertical-align: bottom; */
   /* align-self: end; */
 }
-
+/* 
 div:nth-child(4) { grid-row-start: 2; }
-div:nth-child(5) { grid-row-start: 3; }
+div:nth-child(5) { grid-row-start: 3; } */
 
-.col {
-  /* background-color: #444; */
+.form-body .col {
   color: #fff;
   border-radius: 5px;
   padding: 5px;
@@ -40,5 +39,96 @@ div:nth-child(5) { grid-row-start: 3; }
     /* padding-top:7px; */
     font-size:16px;
     font-weight: bold;
-    color: var(--base02)
+    /* color: var(--base02); */
+    color: var(--base2);
+}
+
+select option {
+    background: var(--base3);
+}
+
+
+
+/* DATERANGEPICKER STUFF */
+/* .daterangepicker {
+    border: 1px solid var(--base03);
+    border-radius: 0px; 
+    background-image: url(../img/noisy_textures/sol_base1.png);
+    
+} */
+
+/* .daterangepicker .calendar-table {
+    background-color: var(--base2)  !important;
+} */
+
+
+/* td.off.ends {
+    background-color: var(--base3) !important;
+} */
+
+.input-daterangepicker {
+    font-size: 47%;
+}
+
+td.active.start-date.available, td.active.end-date.available {
+    background-color: var(--base03) !important;
+}
+td.in-range.available {
+    background-color: var(--base01) !important;
+}
+/* select.hourselect, select.minuteselect {
+    background-image: url(../img/noisy_textures/sol_base2.png) !important;
+} */
+
+.cancelBtn, .applyBtn {
+    width: auto !important;
+}
+.cancelBtn {
+    background-color: var(--base01) !important;
+}
+
+
+
+span.drp-selected {
+    font-weight: bold;
+}
+
+.res-table {
+  /* display: grid; */
+  /* grid-template-columns: repeat(5, minmax(100px, 1fr)); */
+  max-width: inherit;
+}
+
+.res-table .row {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(100px, 1fr));
+}
+
+.res-table .col {
+    border-radius: 5px;
+    padding: 5px;
+    font-size: 100%;
+    align-self: center;
+    text-align: center;
+    color: var(--base2)
+}
+
+.res-table .col.header{
+    font-weight: bold;
+}
+
+/* .cancel-res-btn { */
+    /* background-color: var(--base0); */
+    /* display: inline-block; */
+/* } */
+
+
+hr {
+    display: block;
+    height: 1px;
+    border: 0;
+    border-top: 1px solid #ccc;
+    margin: 1em 0;
+    padding: 0;
 }

@@ -23,6 +23,15 @@ sudo supervisorctl status
 
 ## 2. Nginx
 
+### 2.1 Create Certificates
+
+Create certificates/key for ssl connection:
+```bash
+openssl req -x509 -newkey rsa:4096 -nodes -out certs/cert.pem -keyout certs/key.pem -days 365
+openssl dhparam -out certs/dhparam.pem 4096
+```
+### 2.2 Nginx configuration
+
 (``nginx.conf`` follows the reccomendations by Mozilla at https://wiki.mozilla.org/Security/Server_Side_TLS)
 (also useful: https://raymii.org/s/tutorials/Strong_SSL_Security_On_nginx.html)
 Put ``nginx.conf`` in ``/etc/nginx/sites-available/``:
