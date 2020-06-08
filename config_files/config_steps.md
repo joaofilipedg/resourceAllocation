@@ -11,6 +11,10 @@ Put ``supervisor.conf`` in ``/etc/supervisor/conf.d/``:
 ```bash
 sudo cp config_files/supervisor.conf /etc/supervisor/conf.d/gunicorn_res_alloc.conf
 ```
+Reload daemon:
+```bash
+sudo systemctl daemon-reload
+```
 Stop and start the service:
 ```bash
 sudo service supervisor stop
@@ -27,10 +31,33 @@ sudo supervisorctl status
 
 Create certificates/key for ssl connection:
 ```bash
-openssl req -x509 -newkey rsa:4096 -nodes -out certs/cert.pem -keyout certs/key.pem -days 365
-openssl dhparam -out certs/dhparam.pem 4096
+$openssl req -x509 -newkey rsa:4096 -nodes -out certs/cert.pem -keyout certs/key.pem -days 365
+-----
+Country Name (2 letter code) [AU]:PT
+State or Province Name (full name) [Some-State]:Lisbon
+Locality Name (eg, city) []:Lisbon
+Organization Name (eg, company) [Internet Widgits Pty Ltd]:INESC-ID
+Organizational Unit Name (eg, section) []:HPCAS
+Common Name (e.g. server FQDN or YOUR name) []:
+Email Address []:sysadmin@googlegroups.com
+
+$openssl dhparam -out certs/dhparam.pem 4096
 ```
+
 ### 2.2 Nginx configuration
+
+#### 2.2.1 (only in centos):
+If there is no folder `/etc/nginx/sites-available`:
+```bash
+sudo mkdir /etc/nginx/sites-available
+sudo mkdir /etc/nginx/sites-enabled
+```
+Add the following line to the `http` block inside `/etc/nginx/nginx.conf`:
+```
+include /etc/nginx/sites-enabled/*;
+```
+
+#### 2.2.2
 
 (``nginx.conf`` follows the reccomendations by Mozilla at https://wiki.mozilla.org/Security/Server_Side_TLS)
 (also useful: https://raymii.org/s/tutorials/Strong_SSL_Security_On_nginx.html)
