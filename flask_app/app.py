@@ -11,8 +11,8 @@ app = Flask(__name__, static_folder="templates/static")
 @app.route('/')
 @app.route('/login')
 def hello_world():
-    # return render_template('layouts/login.html')
-    return redirect(url_for('reservations'))
+    return render_template('layouts/login.html')
+    # return redirect(url_for('reservations'))
 
 
 @app.route('/reservations')
@@ -65,10 +65,9 @@ def new_reservation():
 
     # print
     # scheduler.add_job(func=sql.db_timedRemoveReservation, trigger="date", run_date=new_reservation["end_date"], args=[res_id, db], id='j'+str(res_id))
-    scheduler.add_job(func=sql.db_timedRemoveReservation, trigger="date", run_date=new_reservation["end_date"], args=[res_id], id='j'+str(res_id))
+    scheduler.add_job(func=sql.db_timedRemoveReservation, trigger="date", run_date=new_reservation["end_date"], args=[res_id], id='j'+str(res_id), misfire_grace_time=24*60*60)
     
     return redirect(url_for('reservations'))
-
     
     # else:
     #     list_hosts = sql.db_getListHosts(db)
@@ -92,42 +91,7 @@ def cancel_reservation():
     sql.db_removeReservation(res_id)
     return "OK"
 
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////mnt/c/Users/joaof/OneDrive/github/joaofilipedg/resourceAllocation/sqlite_db/res_alloc.db'
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///new_sqlalchemy_db.db'
-# app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-# db_alch = SQLAlchemy(app)
-
-# class User(db_alch.Model):
-#     id = db_alch.Column(db_alch.Integer, primary_key=True)
-#     username = db_alch.Column(db_alch.String(80), unique=True, nullable=False)
-#     email = db_alch.Column(db_alch.String(120), unique=True, nullable=False)
-#     def __repr__(self):
-#             return '<User %r>' % self.username
-
-# def show_users():
-#     with db_alch.app.app_context():
-#         print(User.query.all())
-
-def timed_func():
-    print("5 seconds later")
-
-# def sched_addNewRes(sched, new_reservation):
-    
-
-
 class Config(object):
-    # JOBS = [
-    #     {
-    #         'id': 'job1',
-    #         # 'func': show_users,
-    #         'func': timed_func,
-    #         'trigger': 'interval',    
-    #         'replace_existing': True,
-    #         'seconds': 5
-    #     }
-    # ]
-
     SCHEDULER_JOBSTORES = {
         'default': SQLAlchemyJobStore(url='sqlite:///flask_context.db')
     }
@@ -135,8 +99,6 @@ class Config(object):
     SCHEDULER_API_ENABLED = True
 
 app.config.from_object(Config())
-# db_alch.app = app
-# db_alch.init_app(app)
 scheduler = APScheduler()
 scheduler.init_app(app)
 scheduler.start()
