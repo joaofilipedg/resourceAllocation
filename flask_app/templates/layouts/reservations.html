@@ -74,7 +74,7 @@
                                         maxSpan: {"days": 7},
                                         timePicker: true,
                                         timePicker24Hour: true,
-                                        timePickerIncrement: 60,
+                                        timePickerIncrement: 1,
                                         startDate: moment().startOf('hour'),
                                         endDate: moment().startOf('hour').add(32, 'hour'),
                                         locale: {
@@ -85,8 +85,28 @@
                             </script>
                         </div>                
                         
-                        <div class="col f">
+                        <div class="col e">
                             <button type="submit" id="confirm_res" class="but_res">Confirm Reservation</button>                                                                              
+                        </div>
+
+                        <div class="col f">
+                            <p id="timezone"></p>
+                            <p id="curr_time"></p>
+                            <script>
+                                function addZero(i) {
+                                    if (i < 10) {
+                                        i = "0" + i;
+                                    }
+                                    return i;
+                                }
+                                var offset = -(new Date().getTimezoneOffset() / 60);
+                                var d = "Use Lisbon Time (GMT+" + offset + "):";
+                                var today = new Date();
+                                var date = today.getFullYear() + '-' + addZero((today.getMonth()) + 1) + '-' + addZero(today.getDate());
+                                var time = addZero(today.getHours()) + ":" + addZero(today.getMinutes());
+                                document.getElementById("timezone").innerHTML = d;
+                                document.getElementById("curr_time").innerHTML = "\t" + date + " " + time;
+                            </script>
                         </div>
                     </div>
                 </div>
