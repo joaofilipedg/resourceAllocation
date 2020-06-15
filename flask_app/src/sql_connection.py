@@ -1,16 +1,67 @@
 import sqlite3
 
+class ReservationsDB:
+    def __init__(self, path_to_db):
+        self.conn = sqlite3.connect(path_to_db)
+        self.create_users_table()
+        self.create_hosts_table()
+        self.create_restypes_table()
+        self.create_reservations_table()
 
-# Connect to a sqlite database
-def db_connect(path_to_db):
-    db_conn = sqlite3.connect(path_to_db)
-    return db_conn
+    def create_users_table(self):
+        query = """
+        CREATE TABLE IF NOT EXISTS "users" (
+            username TEXT PRIMARY KEY NOT NULL
+        );
+        """
+        self.conn.execute(query)
+    
+    def create_hosts_table(self):
+        query = """
+        CREATE TABLE IF NOT EXISTS "hosts" (
+            hostname TEXT PRIMARY KEY NOT NULL,
+            has_gpu INTEGER NOT NULL,
+            has_fpga INTEGER NOT NULL
+            );
+        """
+        self.conn.execute(query)
 
-db = db_connect("sqlite_db/res_alloc.db")
+    def create_restypes_table(self):
+        query = """
+        CREATE TABLE IF NOT EXISTS "reservation_types" (
+            id INTEGER PRIMARY KEY,
+            name TEXT,
+            description TEXT
+            );
+        """
+        self.conn.execute(query)
+
+    def create_reservations_table(self):
+        query = """
+        CREATE TABLE IF NOT EXISTS "reservations" (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user TEXT NOT NULL,
+            host TEXT NOT NULL,
+            reservation_type INTEGER NOT NULL,
+            begin_date TEXT,
+            end_date TEXT,
+            FOREIGN KEY (user) REFERENCES users(username),
+            FOREIGN KEY (host) REFERENCES hosts(hostname),
+            FOREIGN KEY (reservation_type) REFERENCES reservation_types(id)
+            );
+        """
+        self.conn.execute(query)
+
+
+# # Connect to a sqlite database
+# def db_connect(path_to_db):
+#     return ReservationsDB(path_to_db)
+
+db = ReservationsDB("sqlite_db/res_alloc.db")
 
 # Query the database
 def db_query(query):
-    cursor = db.cursor()
+    cursor = db.conn.cursor()
     cursor.execute(query)
     return cursor.fetchall()
 
@@ -87,10 +138,10 @@ def db_addNewReservation(new_res):
     insert = INSERT_INTO.format(RESERVATIONS_TABLE, new_res_str)
     
     print(insert)
-    cursor = db.cursor()
+    cursor =  db.conn.cursor()
     cursor.execute(insert)
     # print(cursor.lastrowid)
-    db.commit()
+    db.conn.commit()
 
     return cursor.lastrowid
 
@@ -98,20 +149,20 @@ def db_removeReservation(res_id):
     delete = "DELETE FROM reservations WHERE id={}".format(res_id)
     
     print(delete)
-    cursor = db.cursor()
+    cursor = db.conn.cursor()
     cursor.execute(delete)
-    db.commit()
+    db.conn.commit()
 
     return True
 
 def db_timedRemoveReservation(*args):
     res_id = args[0]
     print("Time's up! Finishing reservation with id {}".format(res_id))
-    db_temp = db_connect("sqlite_db/res_alloc.db")
+    db_temp = ReservationsDB("sqlite_db/res_alloc.db")
 
     delete = "DELETE FROM reservations WHERE id={}".format(res_id)
     print(delete)
-    cursor = db_temp.cursor()
+    cursor = db_temp.conn.cursor()
     cursor.execute(delete)
-    db_temp.commit()
+    db_temp.conn.commit()
     return True
