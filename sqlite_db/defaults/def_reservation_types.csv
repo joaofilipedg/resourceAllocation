@@ -1,0 +1,5 @@
+1;Reserved CPU/Full System;Machine reserved for exclusive/intensive use of CPU and possibly other components and in which running a second process significantly alters the results obtained.
+2;Reserved FPGA;Machine reserved for the exclusive use of the FPGA. However, other people can use the CPU/GPU/etc, as long as this does not imply a full CPU occupation.
+3;Reserved GPU;Machine reserved for the exclusive use of the GPU. However, other people can use the CPU/FPGA/etc, as long as this does not imply a full CPU occupation.
+4;Running programs/simulations;Others can use the machine, but the resources are probably quite busy. Others cannot put the machine in reserved mode.
+5;Developing;Others can use the machine, but cannot put the machine in reserved mode.

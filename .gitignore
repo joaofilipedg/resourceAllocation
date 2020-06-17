@@ -8,3 +8,4 @@ config_files/certs/*
 *.png
 !INESCID_logo.png
 sql_changedb.py
+def_users.csv
