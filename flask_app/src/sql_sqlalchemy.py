@@ -126,7 +126,6 @@ class ReservationsDB:
                 print(e)
                 return -1
 
-
     def print_query(self, table='', query='', num_cols=-1):
         query = query if query != '' else "SELECT * FROM '{}';".format(table)
         print(query)
@@ -140,53 +139,22 @@ class ReservationsDB:
                 if (num_cols == 1) or (len(result.keys()) == 1):
                     out = [i[0] for i in result]
                 else:
-                    out = [j for i in result for j in i]
-                print(out)
+                    # out = [j for i in result for j in i]
+                    out = []
+                    for row in result:
+                        list_aux = []
+                        for val in row:
+                            list_aux.append(val)
+                        out.append(list_aux)
+                # print(out)
                 result.close()
         return out
-
-    # def print_list_users(self):
-    #     query = "SELECT username FROM users ORDER BY username;"
-    #     self.print_all_data(query=query)
-
-    #     print("\n")
-
-    # Examples
-
-    # def sample_query(self):
-    #     # Sample Query
-    #     query = "SELECT first_name, last_name FROM {TBL_USR} WHERE " \
-    #             "last_name LIKE 'M%';".format(TBL_USR=USERS)
-    #     self.print_all_data(query=query)
-
-    #     # Sample Query Joining
-    #     query = "SELECT u.last_name as last_name, " \
-    #             "a.email as email, a.address as address " \
-    #             "FROM {TBL_USR} AS u " \
-    #             "LEFT JOIN {TBL_ADDR} as a " \
-    #             "WHERE u.id=a.user_id AND u.last_name LIKE 'M%';" \
-    #         .format(TBL_USR=USERS, TBL_ADDR=ADDRESSES)
-    #     self.print_all_data(query=query)
-
-    # def sample_delete(self):
-    #     # Delete Data by Id
-    #     query = "DELETE FROM {} WHERE id=3".format(USERS)
-    #     self.execute_query(query)
-    #     self.print_all_data(USERS)
-
-    #     # Delete All Data
-    #     '''
-    #     query = "DELETE FROM {}".format(USERS)
-    #     self.execute_query(query)
-    #     self.print_all_data(USERS)
-    #     '''
 
     def insert(self, table, values):
         # Insert Data
         query = "INSERT INTO {} " \
                 " VALUES {};".format(table, values)
         self.execute_query(query)
-        # self.print_all_data(table)
 
     def insert_newReservation(self, new_res):
         new_res_str = "(\"{}\", \"{}\", {}, \"{}\", \"{}\")".format(new_res["user"], new_res["host"], new_res["res_type"], new_res["begin_date"], new_res["end_date"])
@@ -194,33 +162,18 @@ class ReservationsDB:
         
         print(insert)
         lastrowid = self.execute_query(insert)
-        # cursor =  db.conn.cursor()
-        # cursor.execute(insert)
-        # # print(cursor.lastrowid)
-        # db.conn.commit()
 
         return lastrowid
 
-    def db_deleteReservation(self, res_id):
+    def del_reservation(self, res_id):
         delete = "DELETE FROM {} WHERE id={}".format(RESERVATIONS, res_id)
         print(delete)
         self.execute_query(delete)
-        # cursor = db.conn.cursor()
-        # cursor.execute(delete)
-        # db.conn.commit()
-
         return True
 
-    def db_timedDeleteReservation(self, res_id):
-        print("Time's up! Finishing reservation with id {}".format(res_id))
-        # db_temp = ReservationsDB("sqlite_db/res_alloc.db")
-        
-        # delete = "DELETE FROM {} WHERE id={}".format(RESERVATIONS, res_id)
-        # print(delete)
-        # cursor = db_temp.conn.cursor()
-        # cursor.execute(delete)
-        # db_temp.conn.commit()
-        return self.db_deleteReservation(res_id)
+    # def del_timedReservation(self, res_id):
+    #     print("Time's up! Finishing reservation with id {}".format(res_id))
+    #     return self.del_reservation(res_id)
 
 
     # QUERIES
@@ -234,8 +187,15 @@ class ReservationsDB:
 
     def get_listResTypes(self):
         query = "SELECT name, id, description FROM reservation_types;"
-        return self.print_query(query=query)
+        
+        result_query = self.print_query(query=query)
 
+        print(result_query)
+        list_restypes = [i[0] for i in result_query]
+        list_restypes_ids = [i[1] for i in result_query]
+
+        # return result_query
+        return list_restypes, list_restypes_ids
     def get_listFreeHosts(self):
         query = "SELECT \
                 hosts.hostname, \
@@ -263,3 +223,11 @@ class ReservationsDB:
                     LEFT JOIN reservation_types as res_t ON res_t.id = res.reservation_type \
                 ORDER BY 1,2;"
         return self.print_query(query=query)
+
+
+def timed_removeReservation(*args):
+    from flask_app.app import dbmain
+    res_id = args[0]
+    
+    print("Time's up! Finishing reservation with id {}".format(res_id))
+    return dbmain.del_reservation(res_id)

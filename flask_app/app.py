@@ -1,5 +1,4 @@
 from flask import Flask, render_template, request, redirect, url_for
-from flask_app.src import sql_connection as sql
 from flask_app.src import sql_sqlalchemy as mydb
 from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 from flask_apscheduler import APScheduler
@@ -18,17 +17,17 @@ def hello_world():
 
 @app.route('/reservations')
 def reservations():
-    list_hosts = sql.db_getListHosts()
+    list_hosts = dbmain.get_listHosts()
     print(list_hosts)
 
-    list_restypes, list_restypes_ids = sql.db_getListResTypes()
+    list_restypes, list_restypes_ids = dbmain.get_listResTypes()
     print(list_restypes)
     print(list_restypes_ids)
     
-    list_freehosts = sql.db_getFreeHosts()
+    list_freehosts = dbmain.get_listFreeHosts()
     print(list_freehosts)
 
-    list_res = sql.db_getCurrentReservations()
+    list_res = dbmain.get_listCurrentReservations()
     print(list_res)
     return render_template('layouts/reservations.html', hosts=list_hosts, num_res_types=len(list_restypes), res_types=list_restypes, res_type_ids = list_restypes_ids, free_hosts=list_freehosts, curr_res=list_res)
 
@@ -36,9 +35,7 @@ def reservations():
 def new_reservation():
     # if request.method == "POST":
 
-
-
-    list_users = sql.db_getListUsers()
+    list_users = dbmain.get_listUsers()
 
     new_reservation = {}
     new_reservation["user"] = request.form["username"]
@@ -62,11 +59,10 @@ def new_reservation():
         return "RESERVATION END DATE IS ALREADY IN THE PAST ({})!".format(new_reservation["end_date"])
 
     
-    res_id = sql.db_addNewReservation(new_reservation)
+    res_id = dbmain.insert_newReservation(new_reservation)
 
-    # print
     # scheduler.add_job(func=sql.db_timedRemoveReservation, trigger="date", run_date=new_reservation["end_date"], args=[res_id, db], id='j'+str(res_id))
-    scheduler.add_job(func=sql.db_timedRemoveReservation, trigger="date", run_date=new_reservation["end_date"], args=[res_id], id='j'+str(res_id), misfire_grace_time=24*60*60)
+    scheduler.add_job(func=mydb.timed_removeReservation, trigger="date", run_date=new_reservation["end_date"], args=[res_id], id='j'+str(res_id), misfire_grace_time=24*60*60)
     
     return redirect(url_for('reservations'))
     
@@ -89,12 +85,12 @@ def cancel_reservation():
     # print(request.get_json())
     res_id = request.get_json().get("res_id", "")
     print(res_id)
-    sql.db_removeReservation(res_id)
+    dbmain.del_reservation(res_id)
     return "OK"
 
 class Config(object):
     SCHEDULER_JOBSTORES = {
-        'default': SQLAlchemyJobStore(url='sqlite:///flask_context.db')
+        'default': SQLAlchemyJobStore(url='sqlite:///sqlite_db/flask_scheduler_context.db')
     }
 
     SCHEDULER_API_ENABLED = True
@@ -104,14 +100,14 @@ scheduler = APScheduler()
 scheduler.init_app(app)
 scheduler.start()
 
-db2 = mydb.ReservationsDB(mydb.SQLITE, dbname="sqlite_db/res_alloc2.db")
+dbmain = mydb.ReservationsDB(mydb.SQLITE, dbname="sqlite_db/res_alloc2.db")
 
 # db2.insert("users", "('joaoguerreiro')")
-list_users = db2.get_listUsers()
-list_hosts = db2.get_listHosts()
-list_restypes = db2.get_listResTypes()
-list_free_hosts = db2.get_listFreeHosts()
-list_curr_res = db2.get_listCurrentReservations()
+# list_users = dbmain.get_listUsers()
+# list_hosts = dbmain.get_listHosts()
+# list_restypes = dbmain.get_listResTypes()
+# list_free_hosts = dbmain.get_listFreeHosts()
+# list_curr_res = dbmain.get_listCurrentReservations()
 if __name__ == '__main__':
     app.run(host='0.0.0.0')
     
