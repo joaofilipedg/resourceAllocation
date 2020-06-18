@@ -160,14 +160,12 @@ class ReservationsDB:
         new_res_str = "(\"{}\", \"{}\", {}, \"{}\", \"{}\")".format(new_res["user"], new_res["host"], new_res["res_type"], new_res["begin_date"], new_res["end_date"])
         insert = INSERT_INTO.format(RESERVATIONS_TABLE, new_res_str)
         
-        print(insert)
         lastrowid = self.execute_query(insert)
 
         return lastrowid
 
     def del_reservation(self, res_id):
         delete = "DELETE FROM {} WHERE id={}".format(RESERVATIONS, res_id)
-        print(delete)
         self.execute_query(delete)
         return True
 
@@ -225,9 +223,19 @@ class ReservationsDB:
         return self.print_query(query=query)
 
 
+# Function activated by the scheduler when END Time of a reservation activates
 def timed_removeReservation(*args):
     from flask_app.app import dbmain
     res_id = args[0]
     
     print("Time's up! Finishing reservation with id {}".format(res_id))
+    return dbmain.del_reservation(res_id)
+
+# Function activated when user manually cancels reservation    
+def manual_removeReservation(res_id):
+    from flask_app.app import dbmain, scheduler
+
+    # must also remove scheduled remove action from the scheduler
+    scheduler.remove_job(id='j'+str(res_id))
+    
     return dbmain.del_reservation(res_id)

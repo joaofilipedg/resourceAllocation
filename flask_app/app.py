@@ -82,10 +82,10 @@ def new_reservation():
 
 @app.route('/cancel_reservation', methods=["POST"])
 def cancel_reservation():
-    # print(request.get_json())
     res_id = request.get_json().get("res_id", "")
     print(res_id)
-    dbmain.del_reservation(res_id)
+
+    mydb.manual_removeReservation(res_id)
     return "OK"
 
 class Config(object):
@@ -102,12 +102,6 @@ scheduler.start()
 
 dbmain = mydb.ReservationsDB(mydb.SQLITE, dbname="sqlite_db/res_alloc2.db")
 
-# db2.insert("users", "('joaoguerreiro')")
-# list_users = dbmain.get_listUsers()
-# list_hosts = dbmain.get_listHosts()
-# list_restypes = dbmain.get_listResTypes()
-# list_free_hosts = dbmain.get_listFreeHosts()
-# list_curr_res = dbmain.get_listCurrentReservations()
 if __name__ == '__main__':
     app.run(host='0.0.0.0')
     
