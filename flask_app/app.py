@@ -8,6 +8,8 @@ from datetime import datetime, timedelta
 
 app = Flask(__name__, static_folder="templates/static")
 
+
+# MAIN PAGE - Login
 @app.route('/')
 @app.route('/login')
 def hello_world():
@@ -15,6 +17,7 @@ def hello_world():
     # return redirect(url_for('reservations'))
 
 
+# Reservations page, to add new reservations, see current reservations or cancel one active reservation
 @app.route('/reservations')
 def reservations():
     list_hosts = dbmain.get_listHosts()
@@ -31,6 +34,7 @@ def reservations():
     print(list_res)
     return render_template('layouts/reservations.html', hosts=list_hosts, num_res_types=len(list_restypes), res_types=list_restypes, res_type_ids = list_restypes_ids, free_hosts=list_freehosts, curr_res=list_res)
 
+# Add new reservation page (POST only)
 @app.route('/new_reservation', methods=["POST"])
 def new_reservation():
     # if request.method == "POST":
@@ -80,6 +84,7 @@ def new_reservation():
     #     print(list_res)
     #     return render_template('layouts/reservations.html', hosts=list_hosts, res_types=list_restypes, free_hosts=list_freehosts, curr_res=list_res)
 
+# Cancel reservation (POST only)
 @app.route('/cancel_reservation', methods=["POST"])
 def cancel_reservation():
     res_id = request.get_json().get("res_id", "")
@@ -87,6 +92,35 @@ def cancel_reservation():
 
     mydb.manual_removeReservation(res_id)
     return "OK"
+
+# Reservations page, to add new reservations, see current reservations or cancel one active reservation
+@app.route('/edit')
+def edit_db():
+    full_list_hosts = dbmain.get_fullListHosts()
+    print(full_list_hosts)
+
+    # list_restypes, list_restypes_ids = dbmain.get_listResTypes()
+    # print(list_restypes)
+    # print(list_restypes_ids)
+
+    return render_template('layouts/edit_db.html', hosts=full_list_hosts)
+
+@app.route('/toggle_host', methods=["POST"])
+def toggle_enable_host():
+    hostname = request.get_json().get("hostname", "")
+    print(hostname)
+
+    dbmain.toggle_enableHost(hostname)
+    return "OK"
+
+@app.route('/remove_host', methods=["POST"])
+def remove_host():
+    hostname = request.get_json().get("hostname", "")
+    print(hostname)
+
+    dbmain.del_host(hostname)
+    return "OK"
+
 
 class Config(object):
     SCHEDULER_JOBSTORES = {

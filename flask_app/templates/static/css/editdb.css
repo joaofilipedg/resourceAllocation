@@ -1,0 +1,45 @@
+.hosts-table {
+  /* display: grid; */
+  /* grid-template-columns: repeat(5, minmax(100px, 1fr)); */
+  max-width: inherit;
+}
+
+.hosts-table .row {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.hosts-table .col {
+    border-radius: 5px;
+    padding: 0px;
+    font-size: 100%;
+    align-self: center;
+    text-align: center;
+    color: var(--base2);
+}
+
+.hosts-table .col.header{
+    font-weight: bold;
+}
+
+.editBtn, .disableBtn, .removeBtn {
+  padding: 3px 5px;
+  margin: 2px 0;
+}
+
+.editBtn {
+  background-color: var(--base01);
+}
+
+.disableBtn {
+  background-color: var(--red);
+}
+
+.special-hr {
+  margin: 0 0;
+}
+
+/* .removeBtn {
+  background-color: var(--base01);
+} */

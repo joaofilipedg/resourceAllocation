@@ -61,7 +61,8 @@ class ReservationsDB:
             hosts = Table(HOSTS, metadata,
                         Column('hostname', String, primary_key=True, nullable=False),
                         Column('has_gpu', Integer, nullable=False),
-                        Column('has_fpga', Integer, nullable=False)
+                        Column('has_fpga', Integer, nullable=False),
+                        Column('enabled', Integer, nullable=False)
                         )
 
         if RESTYPES in TABLES_MISSING:
@@ -100,11 +101,16 @@ class ReservationsDB:
                         else:
                             if table == HOSTS:
                                 values = "\"" + row[0] + "\""
+
+                                # checks if each host has GPU or FPGA
                                 for value in row[1:]:
                                     if "has" in value:
                                         values += ", 1"
                                     else:
                                         values += ", 0"
+                                
+                                #make all hosts enabled by default
+                                values += ", 1"
                             else:
                                 values = row[0]
                                 for value in row[1:]:
@@ -164,9 +170,24 @@ class ReservationsDB:
 
         return lastrowid
 
-    def del_reservation(self, res_id):
-        delete = "DELETE FROM {} WHERE id={}".format(RESERVATIONS, res_id)
+    def del_entry(self, table, column, value):
+        delete = "DELETE FROM {} WHERE {}={};".format(table, column, value)
         self.execute_query(delete)
+        return True
+
+    # def del_reservation(self, res_id):
+    #     return self.del_entry(RESERVATIONS, res_id)
+
+    def del_host(self, hostname):
+        return self.del_entry(HOSTS, "hostname", "\""+hostname+"\"")
+
+    def toggle_enableHost(self, hostname):
+        query = "SELECT enabled FROM {} WHERE hostname=\"{}\";".format(HOSTS, hostname)
+        enabled = self.print_query(query=query)[0]
+        print(enabled)
+        enabled = 1 - enabled
+        update = "UPDATE {} SET enabled = {} WHERE hostname=\"{}\"".format(HOSTS, enabled, hostname)
+        self.execute_query(update)
         return True
 
     # def del_timedReservation(self, res_id):
@@ -180,7 +201,8 @@ class ReservationsDB:
         return self.print_query(query=query)
     
     def get_listHosts(self):
-        query = "SELECT hostname FROM hosts ORDER BY hostname;"
+        # query = "SELECT hostname FROM hosts ORDER BY hostname;"
+        query = "SELECT hostname FROM hosts WHERE enabled=1 ORDER BY hostname;"
         return self.print_query(query=query)
 
     def get_listResTypes(self):
@@ -194,6 +216,12 @@ class ReservationsDB:
 
         # return result_query
         return list_restypes, list_restypes_ids
+
+    def get_fullListHosts(self):
+        query = "SELECT * FROM hosts ORDER BY hostname;"
+        return self.print_query(query=query)
+
+
     def get_listFreeHosts(self):
         query = "SELECT \
                 hosts.hostname, \
@@ -201,6 +229,7 @@ class ReservationsDB:
             FROM \
                 hosts \
                 LEFT JOIN reservations as res ON hosts.hostname = res.host \
+            WHERE hosts.enabled = 1 \
             GROUP BY hosts.hostname \
             HAVING num_reservations == 0 \
             ORDER BY hosts.hostname;"
@@ -229,7 +258,7 @@ def timed_removeReservation(*args):
     res_id = args[0]
     
     print("Time's up! Finishing reservation with id {}".format(res_id))
-    return dbmain.del_reservation(res_id)
+    return dbmain.del_entry(RESERVATIONS, "id", res_id)
 
 # Function activated when user manually cancels reservation    
 def manual_removeReservation(res_id):
@@ -238,4 +267,4 @@ def manual_removeReservation(res_id):
     # must also remove scheduled remove action from the scheduler
     scheduler.remove_job(id='j'+str(res_id))
     
-    return dbmain.del_reservation(res_id)
+    return dbmain.del_entry(RESERVATIONS, "id", res_id)

@@ -1,9 +1,4 @@
 /* LIST STUFF */
-/* Include the padding and border in an element's total width and height */
-/* * {
-  box-sizing: border-box;
-} */
-
 .free-div {
   padding-bottom: 20px;
 }

@@ -113,38 +113,7 @@
             </form>
         </div>
     </div>
-    
-    <!-- <hr> -->
-    <div class="divider div-transparent"></div>
-
-
-    <!-- LIST OF FREE HOSTS -->
-    <div class="container">
-        <p><span class="div-title">List of currently free hosts</span></p>
-        <div class="free-div">
-            <ul>
-                {%for host in free_hosts%}
-                    <li>{{ host }}</li>
-                {%endfor%}
-            </ul>
-        </div>
-        <script>
-            // allow clicking on the list of free hosts to select the host for the new reservation
-            if (first_h) {
-                first_h = false;
-                list_free_hosts = document.querySelector("ul");
-                list_free_hosts.addEventListener(
-                    "click",
-                    function (ev) {
-                        var h_aux = ev.target.firstChild.data;
-                        changeHostSelected(h_aux);
-                    },
-                    false
-                );
-            }
-        </script>
-    </div>
-    
+      
     <!-- <hr> -->
     <div class="divider div-transparent"></div>
 
@@ -189,6 +158,37 @@
                 </div>
             </form>
         </div>
+    </div>
+
+    <!-- <hr> -->
+    <div class="divider div-transparent"></div>
+    
+    
+    <!-- LIST OF FREE HOSTS -->
+    <div class="container">
+        <p><span class="div-title">List of currently free hosts</span></p>
+        <div class="free-div">
+            <ul>
+                {%for host in free_hosts%}
+                <li>{{ host }}</li>
+                {%endfor%}
+            </ul>
+        </div>
+        <script>
+            // allow clicking on the list of free hosts to select the host for the new reservation
+            if (first_h) {
+                first_h = false;
+                list_free_hosts = document.querySelector("ul");
+                list_free_hosts.addEventListener(
+                    "click",
+                    function (ev) {
+                        var h_aux = ev.target.firstChild.data;
+                        changeHostSelected(h_aux);
+                    },
+                    false
+                );
+            }
+        </script>
     </div>
     
 </body>

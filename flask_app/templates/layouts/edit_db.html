@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/global.css')}}">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <script type=text/javascript src="{{url_for('static', filename='js/variables.js')}}"></script>
+    <script type=text/javascript src="{{url_for('static', filename='js/functions.js')}}"></script>
+    <script type=text/javascript src="{{url_for('static', filename='js/edit_db.js')}}"></script>
+
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
+
+</head>
+
+<body>
+    <div class="imgcontainer">
+        <img src="{{url_for('static', filename='img/INESCID_logo.png')}}" alt="Avatar" class="avatar">
+
+        
+    </div>
+
+    <h1><span class="welcome">Welcome to the HPCAS Resource Allocation Page</span></h1>
+
+
+    <!-- HOSTS TABLE -->
+
+    <div class="container">
+        <p><span class="div-title">List of Hosts</span></p>
+        <div class="my-div">
+            <form name="edit_host_form" onsubmit="return false">
+                <div class="hosts-table">
+                    <div class="row">
+                        <div class="col header">Hostname</div>
+                        <div class="col header">GPU</div>
+                        <div class="col header">FPGA</div>
+                    </div>
+
+                    <!-- LOOP FOR EACH HOST IN THE DB -->
+                    {%for host in hosts%}
+                    <hr class="special-hr"/>
+                    <div class="row">
+
+                        <!-- LOOP ACROSS EACH ENTRY OF THE HOST -->
+                        {%for i in range(0, 3)%}
+                            <div class="col">{{host[i]}}</div>
+                        {%endfor%}
+
+                        <!-- Edit Host -->
+                        <div class="col">
+                            <button type="submit" class="editBtn" name="btnedit" value={{host[0]}}>Edit</button>
+                        </div>
+
+                        <!-- Disable Host -->
+                        <div class="col">
+                            <button type="submit" class="disableBtn" name="btndisable" value={{host[0]}}>Disable</button>
+                        </div>
+
+
+
+                        <!-- Remove Host -->
+                        <div class="col">
+                            <button type="submit" class="removeBtn" name="btnremove" value={{host[0]}}>Remove</button>
+                        </div>
+                    </div>
+                    {%endfor%}
+
+                    <!-- Script for the buttons of each host -->
+                    <script>
+                        if (editdb_first_h) {
+                            editdb_first_h = false;
+                            var hosts = {{ hosts|safe }};
+
+                            // // EDIT BUTTONS
+                            // var disable_buttons = document.getElementsByName("btndisable");
+                            // for (i = 0; i < disable_buttons.length; i++) {
+                            //     var but_aux = disable_buttons[i];
+                            //     var enabled = hosts[i][3];
+
+                            //     // If host is disabled change Color and Text
+                            //     if (enabled == 0) {
+                            //         but_aux.style.background = "#859900";
+                            //         but_aux.innerHTML = "Enable";
+                            //     }
+
+                            //     but_aux.onclick = function () {
+                            //         toggleEnableHost(this.value);
+                            //     };
+                            // }
+
+                            // DISABLE BUTTONS
+                            var disable_buttons = document.getElementsByName("btndisable");
+                            for (i = 0; i < disable_buttons.length; i++) {
+                                var but_aux = disable_buttons[i];
+                                var enabled = hosts[i][3];
+                                
+                                // If host is disabled change Color and Text
+                                if (enabled == 0) {
+                                    but_aux.style.background= "#859900";
+                                    but_aux.innerHTML= "Enable";
+                                }
+
+                                but_aux.onclick = function () {
+                                    toggleEnableHost(this.value);
+                                };
+                            }
+                            
+                            // REMOVE BUTTONS
+                            var remove_buttons = document.getElementsByName("btnremove");
+                            for (i = 0; i < remove_buttons.length; i++) {
+                                var but_aux = remove_buttons[i];                           
+
+                                but_aux.onclick = function () {
+                                    removeHost(this.value);
+                                };
+                            }
+                        }
+                    </script>
+
+
+                    <!-- <script>
+                        // Need to get the reservation ID to tell the server which one shoulld be canceled
+                        if (first_b) {
+                            first_b = false;
+                            var cancel_buttons = document.getElementsByName("btnedit");
+                            for (i = 0; i < cancel_buttons.length; i++) {
+                                var but_aux = cancel_buttons[i];
+                                but_aux.onclick = function () {
+                                    cancelReservation(this.value);
+                                };
+                            }
+                        }
+                    </script> -->
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- <hr> -->
+    <div class="divider div-transparent"></div>
+
+
+   
+    
+
+</body>
+
+</html>
