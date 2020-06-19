@@ -164,10 +164,6 @@ class ReservationsDB:
 
     def insert_newReservation(self, new_res):
         new_res_str = "(\"{}\", \"{}\", {}, \"{}\", \"{}\")".format(new_res["user"], new_res["host"], new_res["res_type"], new_res["begin_date"], new_res["end_date"])
-        # insert = INSERT_INTO.format(RESERVATIONS_TABLE, new_res_str)
-        
-        # lastrowid = self.execute_query(insert)
-
         return self.insert(RESERVATIONS_TABLE, new_res_str)
 
     def insert_newHost(self, new_host):
@@ -179,10 +175,14 @@ class ReservationsDB:
         self.execute_query(delete)
         return True
 
-    # def del_reservation(self, res_id):
-    #     return self.del_entry(RESERVATIONS, res_id)
-
+    # Remove host from database
     def del_host(self, hostname):
+        
+        # Before removing host, remove all reservations associated with it
+        list_res = self.get_listReservationsHost(hostname)
+        for res_id in list_res:
+            manual_removeReservation(res_id)
+
         return self.del_entry(HOSTS, "hostname", "\""+hostname+"\"")
 
     def toggle_enableHost(self, hostname):
@@ -213,16 +213,16 @@ class ReservationsDB:
 
     # QUERIES
     def get_listUsers(self):
-        query = "SELECT username FROM users ORDER BY username;"
+        query = "SELECT username FROM {users} ORDER BY username;".format(users=USERS)
         return self.print_query(query=query)
     
     def get_listHosts(self):
         # query = "SELECT hostname FROM hosts ORDER BY hostname;"
-        query = "SELECT hostname FROM hosts WHERE enabled=1 ORDER BY hostname;"
+        query = "SELECT hostname FROM {hosts} WHERE enabled=1 ORDER BY hostname;".format(hosts=HOSTS)
         return self.print_query(query=query)
 
     def get_listResTypes(self):
-        query = "SELECT name, id, description FROM reservation_types;"
+        query = "SELECT name, id, description FROM {restypes};".format(restypes=RESTYPES)
         
         result_query = self.print_query(query=query)
 
@@ -233,38 +233,47 @@ class ReservationsDB:
         # return result_query
         return list_restypes, list_restypes_ids
 
+    # Get full list of all hosts (including hasgpu, hasfpga and enabled fields)
     def get_fullListHosts(self):
-        query = "SELECT * FROM hosts ORDER BY hostname;"
+        query = "SELECT * FROM {hosts} ORDER BY hostname;".format(hosts=HOSTS)
         return self.print_query(query=query)
 
 
+    # Get list of current free hosts (that are enabled)
     def get_listFreeHosts(self):
         query = "SELECT \
-                hosts.hostname, \
-                COUNT(res.host) as num_reservations \
-            FROM \
-                hosts \
-                LEFT JOIN reservations as res ON hosts.hostname = res.host \
-            WHERE hosts.enabled = 1 \
-            GROUP BY hosts.hostname \
-            HAVING num_reservations == 0 \
-            ORDER BY hosts.hostname;"
+                    {hosts}.hostname, \
+                    COUNT(res.host) as num_reservations \
+                FROM \
+                    {hosts} \
+                    LEFT JOIN {res} as res ON {hosts}.hostname = res.host \
+                WHERE {hosts}.enabled = 1 \
+                GROUP BY {hosts}.hostname \
+                HAVING num_reservations == 0 \
+                ORDER BY {hosts}.hostname;".format(res=RESERVATIONS, hosts=HOSTS)
         return self.print_query(query=query, num_cols=1)
    
-    def get_listCurrentReservations(self):
+    # Get list of all current scheduled reservations 
+    def get_listCurrentReservations(self, hostname=""):
         query = "SELECT \
-                    hosts.hostname, \
-                    users.username, \
+                    {hosts}.hostname, \
+                    {users}.username, \
                     res_t.name, \
                     res.begin_date, \
                     res.end_date, \
                     res.id \
                 FROM \
-                    reservations as res \
-                    LEFT JOIN hosts ON hosts.hostname = res.host \
-                    LEFT JOIN users ON users.username = res.user \
-                    LEFT JOIN reservation_types as res_t ON res_t.id = res.reservation_type \
-                ORDER BY 1,2;"
+                    {res} as res \
+                    LEFT JOIN {hosts} ON {hosts}.hostname = res.host \
+                    LEFT JOIN {users} ON {users}.username = res.user \
+                    LEFT JOIN {restypes} as res_t ON res_t.id = res.reservation_type \
+                ORDER BY 1,2;".format(res=RESERVATIONS, hosts=HOSTS, users=USERS, restypes=RESTYPES)
+        return self.print_query(query=query)
+
+    def get_listReservationsHost(self, hostname):
+        query = "SELECT id \
+                FROM {res} \
+                WHERE host=\"{host}\";".format(res=RESERVATIONS, host=hostname)
         return self.print_query(query=query)
 
 

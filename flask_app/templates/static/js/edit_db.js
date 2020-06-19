@@ -23,7 +23,7 @@ function toggleEnableHost(hostname) {
 }
 
 function removeHost(hostname) {
-    var sure = window.confirm("Are you sure you want to remove this host?");
+    var sure = window.confirm("Are you sure you want to remove this host?\n\nWarning: This will remove all reservations associated with this host.");
     if (sure) {
         return send_ajax_host(hostname, `/remove_host`);
     } else {
