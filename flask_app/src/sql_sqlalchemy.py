@@ -15,6 +15,8 @@ RESERVATIONS    = 'reservations'
 INSERT_INTO = "INSERT INTO {} VALUES {};"
 RESERVATIONS_TABLE = "reservations(user, host, reservation_type, begin_date, end_date)"
 
+
+
 # SQLALCHEMY DB
 class ReservationsDB:
     # http://docs.sqlalchemy.org/en/latest/core/engines.html
@@ -173,7 +175,7 @@ class ReservationsDB:
     def insert_newHost(self, new_host):
         new_host_str = "(\"{host}\", {ip}, {gpu}, {fpga}, 1)".format(host=new_host["hostname"], \
             ip=new_host["ipaddr"], gpu=1 if new_host["hasgpu"]=="Yes" else 0, fpga=1 if new_host["hasfpga"]=="Yes" else 0)
-            
+
         return self.insert(HOSTS, new_host_str)
 
     def del_entry(self, table, column, value):
@@ -185,7 +187,7 @@ class ReservationsDB:
     def del_host(self, hostname):
         
         # Before removing host, remove all reservations associated with it
-        list_res = self.get_listReservationsHost(hostname)
+        list_res = self.get_listReservationsHost(hostname, "id")
         for res_id in list_res:
             manual_removeReservation(res_id)
 
@@ -274,10 +276,10 @@ class ReservationsDB:
                 ORDER BY 1,2;".format(res=RESERVATIONS, hosts=HOSTS, users=USERS, restypes=RESTYPES)
         return self.print_query(query=query)
 
-    def get_listReservationsHost(self, hostname):
-        query = "SELECT id \
+    def get_listReservationsHost(self, hostname, column):
+        query = "SELECT {col} \
                 FROM {res} \
-                WHERE host=\"{host}\";".format(res=RESERVATIONS, host=hostname)
+                WHERE host=\"{host}\";".format(res=RESERVATIONS, col=column, host=hostname)
         return self.print_query(query=query)
 
 
@@ -297,3 +299,61 @@ def manual_removeReservation(res_id):
     scheduler.remove_job(id='j'+str(res_id))
     
     return dbmain.del_entry(RESERVATIONS, "id", res_id)
+
+# Function to check if a new reservation conflicts with any of the previous ones
+# (Return True if there is a conflict)
+def check_conflictsNewReservation(new_res):
+    from flask_app.app import dbmain
+    
+    list_res = dbmain.get_listReservationsHost(new_res["host"], "*")
+    
+    idx_begin_date = 4
+    idx_end_date = idx_begin_date+1
+    idx_restype = 3
+    for res in list_res:
+        # Check if there is any intersection of the timeslot
+        if (new_res["end_date"] <= res[idx_begin_date]) or (new_res["begin_date"] >= res[idx_end_date]):
+            continue
+        else:
+            # if there is, need to check if the reservation types results in conflicts or not
+
+            # Uncomment to debug
+            # print("\tPossible conflict (Time is conflicting with res {})".format(res[0]))
+            # print("\tres: '{}'".format(res))
+            # print("\tnew_res: '{}'".format(new_res))
+            # print("\t\tres[res_type]: '{}'".format(res[idx_restype]))
+            # print("\t\tnew_res[res_type]: '{}'".format(new_res["res_type"]))
+
+            # if either of the reservations (old conflicting one or new one) is of type 1 (RESERVED FULL)
+            conflict_res = "<br/><br/>Conflicting reservation (id, username, hostname, reservation_type, begin_date, end_date):<br/>    {}".format(res)
+            if (res[idx_restype] == 1) or (int(new_res["res_type"]) == 1):
+                error_str = "New reservation conflicts with existing reservation. (One of them is of type 'RESERVED FULL SYSTEM')"
+                print("\t{}".format(error_str))
+                return True, error_str+conflict_res
+            
+            # if both reservations (old conflicting one and new one) are locking the FPGA (RESERVED FPGA)
+            if (res[idx_restype] == 2) and (int(new_res["res_type"]) == 2):
+                error_str = "New reservation conflicts with existing reservation. (Both of them are of type 'RESERVED FPGA')"
+                print("\t{}".format(error_str))
+                return True, error_str+conflict_res
+            
+            # if both reservations (old conflicting one and new one) are locking the GPU (RESERVED GPU)
+            if (res[idx_restype] == 3) and (int(new_res["res_type"]) == 3):
+                error_str = "New reservation conflicts with existing reservation. (Both of them are of type 'RESERVED GPU')"
+                print("\t{}".format(error_str))
+                return True, error_str+conflict_res
+
+            # if old res is RESERVED_GPU or RESERVED_FPGA and new one is DEVELOPING or RUNNING PROGRAMS
+            if ((res[idx_restype] == 2) or (res[idx_restype] == 3)) and ((int(new_res["res_type"]) == 4) or (int(new_res["res_type"]) == 5)):
+                error_str = "New reservation conflicts with existing reservation. (New reservation is of type 'DEVELOPING' or 'RUNNING PROGRAMS/SIMULATIONS', which conflicts with reservations of type 'RESERVED FPGA' or 'RESERVED GPU')"
+                print("\t{}".format(error_str))
+                return True, error_str+conflict_res
+
+            # if old res is DEVELOPING or RUNNING PROGRAMS and new one is RESERVED_GPU or RESERVED_FPGA 
+            if ((res[idx_restype] == 4) or (res[idx_restype] == 5)) and ((int(new_res["res_type"]) == 2) or (int(new_res["res_type"]) == 3)):
+                error_str = "New reservation conflicts with existing reservation. (Existing reservation is of type 'DEVELOPING' or 'RUNNING PROGRAMS/SIMULATIONS', which conflicts with new reservation of type 'RESERVED FPGA' or 'RESERVED GPU')"
+                print("\t{}".format(error_str))
+                return True, error_str+conflict_res
+            # if 
+
+    return False, ""
