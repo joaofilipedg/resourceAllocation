@@ -45,7 +45,7 @@ def new_reservation():
     
     # check if user exists
     if new_reservation["user"] not in list_users:
-        return "USER '{}' DOES NOT EXIST!".format(new_reservation["user"])
+        return "ERROR: User '{}' does not exist!".format(new_reservation["user"])
 
     new_reservation["host"] = request.form["host"]
     new_reservation["res_type"] = request.form["res_type"]
@@ -59,7 +59,7 @@ def new_reservation():
     # print(new_reservation["end_date"] )
     # check if reservation enddate is already in the past
     if new_reservation["end_date"] <= now:
-        return "RESERVATION END DATE IS ALREADY IN THE PAST ({})!".format(new_reservation["end_date"])
+        return "ERROR: Reservation end date is already in the past ({})!".format(new_reservation["end_date"])
 
     
     res_id = dbmain.insert_newReservation(new_reservation)
@@ -122,29 +122,41 @@ def remove_host():
     dbmain.del_host(hostname)
     return "OK"
 
-# Update specific Host (change GPU or FPGA availability) (POST only)
+# Update specific Host (change IP address or GPU/FPGA availability) (POST only)
 @app.route('/update_host', methods=["POST"])
 def update_host():
     args = request.get_json()
     hostname = args.get("hostname", "")
+    ipaddr = args.get("ip", "")
     gpu = args.get("gpu", "")
     fpga = args.get("fpga", "")
 
-    dbmain.update_hostGPUFPGA(hostname, gpu, fpga)
+    dbmain.update_hostGPUFPGA(hostname, ipaddr, gpu, fpga)
 
     return "OK"
 
 # Add new host page (POST only)
 @app.route('/new_host', methods=["POST"])
 def new_host():
-    list_hosts = dbmain.get_listHosts()
+    full_list_hosts = dbmain.get_fullListHosts()
+    list_hostnames = [i[0] for i in full_list_hosts]
+    list_ipaddrs = [i[1] for i in full_list_hosts]
+    print(list_hostnames)
+    print(list_ipaddrs)
 
     new_host = {}
-    new_host["hostname"] = request.form["hostname"]
     
-    # check if user exists
-    if new_host["hostname"] in list_hosts:
-        return "Host {} is already registered!".format(new_host["hostname"])
+    # check if hostname is already registered
+    new_host["hostname"] = request.form["hostname"]
+    if new_host["hostname"] in list_hostnames:
+        return "ERROR: Host {} is already registered!".format(new_host["hostname"])
+
+    
+    # check if ipaddr is already in use
+    new_host["ipaddr"] = request.form["ipaddr"]
+    print(type(new_host["ipaddr"]))
+    if int(new_host["ipaddr"]) in list_ipaddrs:
+        return "ERROR: IP address X.X.X.{} is already being used!".format(new_host["ipaddr"])
 
     new_host["hasgpu"] = request.form["hasgpu"]
     new_host["hasfpga"] = request.form["hasfpga"]

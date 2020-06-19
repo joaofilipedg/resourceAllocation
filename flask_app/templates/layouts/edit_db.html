@@ -32,6 +32,7 @@
                 <div class="hosts-table">
                     <div class="row">
                         <div class="col header">Hostname</div>
+                        <div class="col header">IP</div>
                         <div class="col header">GPU</div>
                         <div class="col header">FPGA</div>
                     </div>
@@ -42,31 +43,29 @@
                     <div class="row">
 
                         <!-- LOOP ACROSS EACH ENTRY OF THE HOST -->
-                        {% for i in range(0, 3) %}
-                            {% if i>0 %}
+                        {% for i in range(0, 4) %}
+                            {% if i>1 %}
                                 {% if host[i] == 1 %}
                                     <div class="col" name={{ host[0] ~ "_" ~ i }}> Yes </div>
                                 {% else %}
                                     <div class="col" name={{ host[0] ~ "_" ~ i }}> No </div>
                                 {% endif %}
                             {% else %}
-                                <div class="col">{{ host[i] }}</div>
+                                <div class="col" name={{ host[0] ~ "_" ~ i }}>{{ host[i] }}</div>
                             {% endif %}
                         {% endfor %}
 
-                        <!-- Edit Host -->
+                        <!-- Edit Host Button -->
                         <div class="col">
                             <button type="submit" class="editBtn" name="btnedit" value={{host[0]}}>Edit</button>
                         </div>
 
-                        <!-- Disable Host -->
+                        <!-- Disable Host Button-->
                         <div class="col">
                             <button type="submit" class="disableBtn" name="btndisable" value={{host[0]}}>Disable</button>
                         </div>
 
-
-
-                        <!-- Remove Host -->
+                        <!-- Remove Host Button-->
                         <div class="col">
                             <button type="submit" class="removeBtn" name="btnremove" value={{host[0]}}>Remove</button>
                         </div>
@@ -92,7 +91,7 @@
                             var disable_buttons = document.getElementsByName("btndisable");
                             for (i = 0; i < disable_buttons.length; i++) {
                                 var but_aux_d = disable_buttons[i];
-                                var enabled = hosts[i][3];
+                                var enabled = hosts[i][editdb_idx_fpga+1];
                                 
                                 // If host is disabled change Color and Text
                                 if (enabled == 0) {
@@ -131,13 +130,22 @@
             <form name="new_host_form" action="/new_host" method="post" onsubmit="return verifyNewHost()">
                 <div class="form-body host-form">
                     <div class="row">
+                        
+                        <!-- Hostname -->
                         <div class="col a">
-                            <label class="cell-label">Hostname</label>
+                            <label class="cell-label new-h-label">Hostname:</label>
                             <input type="text" name="hostname" id="hostname" class="form-control" placeholder="Hostname">
                         </div>
-    
+
+                        <!-- IP Address -->
                         <div class="col b">
-                            <label class="cell-label">With GPU?</label>
+                            <label class="cell-label new-h-label">IP Addr Ending:</label>
+                            <input type="text" name="ipaddr" id="ipaddr" class="form-control" placeholder="XXX">
+                        </div>
+
+                        <!-- Has GPU -->
+                        <div class="col c">
+                            <label class="cell-label new-h-label">With GPU?</label>
                             <select name="hasgpu" id="hasgpu">
                                 <option disabled selected value style="display:none"> -- option -- </option>
                                 <option value="No">No</option>
@@ -145,8 +153,9 @@
                             </select>
                         </div>
     
-                        <div class="col c">
-                            <label class="cell-label">With FPGA?</label>
+                        <!-- Has FPGA -->
+                        <div class="col d">
+                            <label class="cell-label new-h-label">With FPGA?</label>
                             <select name="hasfpga" id="hasfpga">
                                 <option disabled selected value style="display:none"> -- option -- </option>
                                 <option value="No">No</option>
@@ -154,7 +163,8 @@
                             </select>
                         </div>
 
-                        <div class="col d">
+                        <!-- Submit Button -->
+                        <div class="col e">
                             <button type="submit" id="confirm_host" class="but_res">Confirm</button>
                         </div>
                     </div>            

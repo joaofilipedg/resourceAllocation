@@ -60,6 +60,7 @@ class ReservationsDB:
         if HOSTS in TABLES_MISSING:
             hosts = Table(HOSTS, metadata,
                         Column('hostname', String, primary_key=True, nullable=False),
+                        Column('ip', Integer, nullable=False),
                         Column('has_gpu', Integer, nullable=False),
                         Column('has_fpga', Integer, nullable=False),
                         Column('enabled', Integer, nullable=False)
@@ -100,10 +101,12 @@ class ReservationsDB:
                             values = "\"" + row[0] + "\""
                         else:
                             if table == HOSTS:
-                                values = "\"" + row[0] + "\""
+                                
+                                # row format: hostname, ip, has_gpu, has_fpga
+                                values = "\"" + row[0] + "\"" + ', ' + row[1]
 
                                 # checks if each host has GPU or FPGA
-                                for value in row[1:]:
+                                for value in row[2:]:
                                     if "has" in value:
                                         values += ", 1"
                                     else:
@@ -158,16 +161,19 @@ class ReservationsDB:
 
     def insert(self, table, values):
         # Insert Data
-        query = "INSERT INTO {} " \
-                " VALUES {};".format(table, values)
+        query = "INSERT INTO {} VALUES {};".format(table, values)
         return self.execute_query(query)
 
     def insert_newReservation(self, new_res):
-        new_res_str = "(\"{}\", \"{}\", {}, \"{}\", \"{}\")".format(new_res["user"], new_res["host"], new_res["res_type"], new_res["begin_date"], new_res["end_date"])
+        new_res_str = "(\"{user}\", \"{host}\", {restype}, \"{begin}\", \"{end}\")"\
+            .format(user=new_res["user"], host=new_res["host"], restype=new_res["res_type"], begin=new_res["begin_date"], end=new_res["end_date"])
+
         return self.insert(RESERVATIONS_TABLE, new_res_str)
 
     def insert_newHost(self, new_host):
-        new_host_str = "(\"{}\", {}, {}, 1)".format(new_host["hostname"], 1 if new_host["hasgpu"]=="Yes" else 0, 1 if new_host["hasfpga"]=="Yes" else 0)
+        new_host_str = "(\"{host}\", {ip}, {gpu}, {fpga}, 1)".format(host=new_host["hostname"], \
+            ip=new_host["ipaddr"], gpu=1 if new_host["hasgpu"]=="Yes" else 0, fpga=1 if new_host["hasfpga"]=="Yes" else 0)
+            
         return self.insert(HOSTS, new_host_str)
 
     def del_entry(self, table, column, value):
@@ -194,9 +200,12 @@ class ReservationsDB:
         self.execute_query(update)
         return True
 
-    def update_hostGPUFPGA(self, hostname, has_gpu, has_fpga):
+    def update_hostGPUFPGA(self, hostname, ipaddr, has_gpu, has_fpga):
         int_has_gpu = 1 if has_gpu == "Yes" else 0
         int_has_fpga = 1 if has_fpga == "Yes" else 0
+
+        update = "UPDATE {} SET ip = {} WHERE hostname=\"{}\"".format(HOSTS, ipaddr, hostname)
+        self.execute_query(update)
 
         update = "UPDATE {} SET has_gpu = {} WHERE hostname=\"{}\"".format(HOSTS, int_has_gpu, hostname)
         self.execute_query(update)
@@ -204,11 +213,6 @@ class ReservationsDB:
         update = "UPDATE {} SET has_fpga = {} WHERE hostname=\"{}\"".format(HOSTS, int_has_fpga, hostname)
         self.execute_query(update)
         return True
-
-
-    # def del_timedReservation(self, res_id):
-    #     print("Time's up! Finishing reservation with id {}".format(res_id))
-    #     return self.del_reservation(res_id)
 
 
     # QUERIES

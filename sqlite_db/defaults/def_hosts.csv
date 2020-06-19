@@ -1,20 +1,20 @@
-saturn; has_gpu; no_fpga
-vanessa; no_gpu; no_fpga
-adriana; has_gpu; no_fpga
-liliana; no_gpu; has_fpga
-diana; has_gpu; no_fpga
-lagpus; has_gpu; no_fpga
-mariana; has_gpu; has_fpga
-gisele; has_gpu; no_fpga
-fernanda; has_gpu; no_fpga
-izabel; has_gpu; no_fpga
-flavia; has_gpu; no_fpga
-sara; has_gpu; no_fpga
-elsa; no_gpu; has_fpga
-daniela; has_gpu; has_fpga
-jessica; has_gpu; no_fpga
-andreia; no_gpu; no_fpga
-martha; no_gpu; has_fpga
-alessandra; has_gpu; no_fpga
-filipa; has_gpu; no_fpga
-venus; no_gpu; no_fpga
+saturn; 44; has_gpu; no_fpga
+vanessa; 51; no_gpu; no_fpga
+adriana; 46; has_gpu; no_fpga
+liliana; 47; no_gpu; has_fpga
+diana; 48; has_gpu; no_fpga
+lagpus; 252; has_gpu; no_fpga
+mariana; 49; has_gpu; has_fpga
+gisele; 30; has_gpu; no_fpga
+fernanda; 31; has_gpu; no_fpga
+izabel; 32; has_gpu; no_fpga
+flavia; 33; has_gpu; no_fpga
+sara; 35; has_gpu; no_fpga
+elsa; 37; no_gpu; has_fpga
+daniela; 39; has_gpu; has_fpga
+jessica; 40; has_gpu; no_fpga
+andreia; 38; no_gpu; no_fpga
+martha; 52; no_gpu; has_fpga
+alessandra; 42; has_gpu; no_fpga
+filipa; 43; has_gpu; no_fpga
+venus; 41; no_gpu; no_fpga
