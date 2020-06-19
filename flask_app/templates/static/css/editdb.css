@@ -40,6 +40,13 @@
   margin: 0 0;
 }
 
+.form-body.host-form {
+  grid-template-columns: repeat(4, minmax(100px, 1fr));
+}
+
+.form-body.host-form .row {
+  grid-template-columns: repeat(4, minmax(100px, 1fr));
+}}
 /* .removeBtn {
   background-color: var(--base01);
 } */

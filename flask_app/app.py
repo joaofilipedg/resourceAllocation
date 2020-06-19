@@ -16,7 +16,6 @@ def hello_world():
     return render_template('layouts/login.html')
     # return redirect(url_for('reservations'))
 
-
 # Reservations page, to add new reservations, see current reservations or cancel one active reservation
 @app.route('/reservations')
 def reservations():
@@ -93,7 +92,7 @@ def cancel_reservation():
     mydb.manual_removeReservation(res_id)
     return "OK"
 
-# Reservations page, to add new reservations, see current reservations or cancel one active reservation
+# Edit page, to edit list of hosts, add new host,
 @app.route('/edit')
 def edit_db():
     full_list_hosts = dbmain.get_fullListHosts()
@@ -105,6 +104,7 @@ def edit_db():
 
     return render_template('layouts/edit_db.html', hosts=full_list_hosts)
 
+# Enable/Disable specific Host (POST only)
 @app.route('/toggle_host', methods=["POST"])
 def toggle_enable_host():
     hostname = request.get_json().get("hostname", "")
@@ -113,6 +113,7 @@ def toggle_enable_host():
     dbmain.toggle_enableHost(hostname)
     return "OK"
 
+# Remove specific Host (POST only)
 @app.route('/remove_host', methods=["POST"])
 def remove_host():
     hostname = request.get_json().get("hostname", "")
@@ -120,6 +121,37 @@ def remove_host():
 
     dbmain.del_host(hostname)
     return "OK"
+
+# Update specific Host (change GPU or FPGA availability) (POST only)
+@app.route('/update_host', methods=["POST"])
+def update_host():
+    args = request.get_json()
+    hostname = args.get("hostname", "")
+    gpu = args.get("gpu", "")
+    fpga = args.get("fpga", "")
+
+    dbmain.update_hostGPUFPGA(hostname, gpu, fpga)
+
+    return "OK"
+
+# Add new host page (POST only)
+@app.route('/new_host', methods=["POST"])
+def new_host():
+    list_hosts = dbmain.get_listHosts()
+
+    new_host = {}
+    new_host["hostname"] = request.form["hostname"]
+    
+    # check if user exists
+    if new_host["hostname"] in list_hosts:
+        return "Host {} is already registered!".format(new_host["hostname"])
+
+    new_host["hasgpu"] = request.form["hasgpu"]
+    new_host["hasfpga"] = request.form["hasfpga"]
+
+    dbmain.insert_newHost(new_host)
+    
+    return redirect(url_for('edit_db'))
 
 
 class Config(object):

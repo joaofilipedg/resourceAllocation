@@ -1,8 +1,3 @@
-// function confirm_reservation() {
-//     console.log("TESTE");
-//     return;
-// }
-
 function changeHostSelected(host) {
     var sel = document.getElementById('host');
     var opts = sel.options;

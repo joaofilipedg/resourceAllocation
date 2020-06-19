@@ -25,7 +25,6 @@
 
 
     <!-- HOSTS TABLE -->
-
     <div class="container">
         <p><span class="div-title">List of Hosts</span></p>
         <div class="my-div">
@@ -38,14 +37,22 @@
                     </div>
 
                     <!-- LOOP FOR EACH HOST IN THE DB -->
-                    {%for host in hosts%}
+                    {% for host in hosts %}
                     <hr class="special-hr"/>
                     <div class="row">
 
                         <!-- LOOP ACROSS EACH ENTRY OF THE HOST -->
-                        {%for i in range(0, 3)%}
-                            <div class="col">{{host[i]}}</div>
-                        {%endfor%}
+                        {% for i in range(0, 3) %}
+                            {% if i>0 %}
+                                {% if host[i] == 1 %}
+                                    <div class="col" name={{ host[0] ~ "_" ~ i }}> Yes </div>
+                                {% else %}
+                                    <div class="col" name={{ host[0] ~ "_" ~ i }}> No </div>
+                                {% endif %}
+                            {% else %}
+                                <div class="col">{{ host[i] }}</div>
+                            {% endif %}
+                        {% endfor %}
 
                         <!-- Edit Host -->
                         <div class="col">
@@ -64,7 +71,7 @@
                             <button type="submit" class="removeBtn" name="btnremove" value={{host[0]}}>Remove</button>
                         </div>
                     </div>
-                    {%endfor%}
+                    {% endfor %}
 
                     <!-- Script for the buttons of each host -->
                     <script>
@@ -72,36 +79,28 @@
                             editdb_first_h = false;
                             var hosts = {{ hosts|safe }};
 
-                            // // EDIT BUTTONS
-                            // var disable_buttons = document.getElementsByName("btndisable");
-                            // for (i = 0; i < disable_buttons.length; i++) {
-                            //     var but_aux = disable_buttons[i];
-                            //     var enabled = hosts[i][3];
-
-                            //     // If host is disabled change Color and Text
-                            //     if (enabled == 0) {
-                            //         but_aux.style.background = "#859900";
-                            //         but_aux.innerHTML = "Enable";
-                            //     }
-
-                            //     but_aux.onclick = function () {
-                            //         toggleEnableHost(this.value);
-                            //     };
-                            // }
+                            // EDIT BUTTONS
+                            var edit_buttons = document.getElementsByName("btnedit");
+                            for (i = 0; i < edit_buttons.length; i++) {
+                                var but_aux_e = edit_buttons[i];
+                                but_aux_e.onclick = function () {
+                                    editHost(this);
+                                };
+                            }
 
                             // DISABLE BUTTONS
                             var disable_buttons = document.getElementsByName("btndisable");
                             for (i = 0; i < disable_buttons.length; i++) {
-                                var but_aux = disable_buttons[i];
+                                var but_aux_d = disable_buttons[i];
                                 var enabled = hosts[i][3];
                                 
                                 // If host is disabled change Color and Text
                                 if (enabled == 0) {
-                                    but_aux.style.background= "#859900";
-                                    but_aux.innerHTML= "Enable";
+                                    but_aux_d.style.background= "#859900";
+                                    but_aux_d.innerHTML= "Enable";
                                 }
 
-                                but_aux.onclick = function () {
+                                but_aux_d.onclick = function () {
                                     toggleEnableHost(this.value);
                                 };
                             }
@@ -109,38 +108,60 @@
                             // REMOVE BUTTONS
                             var remove_buttons = document.getElementsByName("btnremove");
                             for (i = 0; i < remove_buttons.length; i++) {
-                                var but_aux = remove_buttons[i];                           
-
-                                but_aux.onclick = function () {
+                                var but_aux_r = remove_buttons[i];                           
+                                but_aux_r.onclick = function () {
                                     removeHost(this.value);
                                 };
                             }
                         }
                     </script>
-
-
-                    <!-- <script>
-                        // Need to get the reservation ID to tell the server which one shoulld be canceled
-                        if (first_b) {
-                            first_b = false;
-                            var cancel_buttons = document.getElementsByName("btnedit");
-                            for (i = 0; i < cancel_buttons.length; i++) {
-                                var but_aux = cancel_buttons[i];
-                                but_aux.onclick = function () {
-                                    cancelReservation(this.value);
-                                };
-                            }
-                        }
-                    </script> -->
                 </div>
             </form>
         </div>
     </div>
+
     <!-- <hr> -->
     <div class="divider div-transparent"></div>
 
 
-   
+    <!-- ADD NEW HOST -->
+    <div class="container">
+        <p><span class="div-title">Add New Host</span></p>
+        <div class="my-div">
+            <form name="new_host_form" action="/new_host" method="post" onsubmit="return verifyNewHost()">
+                <div class="form-body host-form">
+                    <div class="row">
+                        <div class="col a">
+                            <label class="cell-label">Hostname</label>
+                            <input type="text" name="hostname" id="hostname" class="form-control" placeholder="Hostname">
+                        </div>
+    
+                        <div class="col b">
+                            <label class="cell-label">With GPU?</label>
+                            <select name="hasgpu" id="hasgpu">
+                                <option disabled selected value style="display:none"> -- option -- </option>
+                                <option value="No">No</option>
+                                <option value="Yes">Yes</option>
+                            </select>
+                        </div>
+    
+                        <div class="col c">
+                            <label class="cell-label">With FPGA?</label>
+                            <select name="hasfpga" id="hasfpga">
+                                <option disabled selected value style="display:none"> -- option -- </option>
+                                <option value="No">No</option>
+                                <option value="Yes">Yes</option>
+                            </select>
+                        </div>
+
+                        <div class="col d">
+                            <button type="submit" id="confirm_host" class="but_res">Confirm</button>
+                        </div>
+                    </div>            
+                </div>
+            </form>
+        </div>
+    </div>
     
 
 </body>

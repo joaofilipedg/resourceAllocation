@@ -160,15 +160,19 @@ class ReservationsDB:
         # Insert Data
         query = "INSERT INTO {} " \
                 " VALUES {};".format(table, values)
-        self.execute_query(query)
+        return self.execute_query(query)
 
     def insert_newReservation(self, new_res):
         new_res_str = "(\"{}\", \"{}\", {}, \"{}\", \"{}\")".format(new_res["user"], new_res["host"], new_res["res_type"], new_res["begin_date"], new_res["end_date"])
-        insert = INSERT_INTO.format(RESERVATIONS_TABLE, new_res_str)
+        # insert = INSERT_INTO.format(RESERVATIONS_TABLE, new_res_str)
         
-        lastrowid = self.execute_query(insert)
+        # lastrowid = self.execute_query(insert)
 
-        return lastrowid
+        return self.insert(RESERVATIONS_TABLE, new_res_str)
+
+    def insert_newHost(self, new_host):
+        new_host_str = "(\"{}\", {}, {}, 1)".format(new_host["hostname"], 1 if new_host["hasgpu"]=="Yes" else 0, 1 if new_host["hasfpga"]=="Yes" else 0)
+        return self.insert(HOSTS, new_host_str)
 
     def del_entry(self, table, column, value):
         delete = "DELETE FROM {} WHERE {}={};".format(table, column, value)
@@ -189,6 +193,18 @@ class ReservationsDB:
         update = "UPDATE {} SET enabled = {} WHERE hostname=\"{}\"".format(HOSTS, enabled, hostname)
         self.execute_query(update)
         return True
+
+    def update_hostGPUFPGA(self, hostname, has_gpu, has_fpga):
+        int_has_gpu = 1 if has_gpu == "Yes" else 0
+        int_has_fpga = 1 if has_fpga == "Yes" else 0
+
+        update = "UPDATE {} SET has_gpu = {} WHERE hostname=\"{}\"".format(HOSTS, int_has_gpu, hostname)
+        self.execute_query(update)
+
+        update = "UPDATE {} SET has_fpga = {} WHERE hostname=\"{}\"".format(HOSTS, int_has_fpga, hostname)
+        self.execute_query(update)
+        return True
+
 
     # def del_timedReservation(self, res_id):
     #     print("Time's up! Finishing reservation with id {}".format(res_id))
