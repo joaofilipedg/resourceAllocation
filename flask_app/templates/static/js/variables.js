@@ -1,4 +1,4 @@
-help_email = "sysadmin@googlegroups.com";
+help_email = "hpcas-sysadmin@googlegroups.com";
 
 // Reservations page
 first_h = true;

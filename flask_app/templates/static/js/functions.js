@@ -26,6 +26,7 @@ function verifyReservation() {
                 alert("Please select a reservation type.");
                 return false;
             } else {
+                document.getElementById("username").disabled = false;
                 return true;
             }
         }        

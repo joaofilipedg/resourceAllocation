@@ -15,7 +15,10 @@ RESERVATIONS    = 'reservations'
 INSERT_INTO = "INSERT INTO {} VALUES {};"
 RESERVATIONS_TABLE = "reservations(user, host, reservation_type, begin_date, end_date)"
 
-
+# IN RESERVATION TABLES
+IDX_BEGIN_DATE = 4
+IDX_END_DATE = IDX_BEGIN_DATE+1
+IDX_RESTYPE = 3
 
 # SQLALCHEMY DB
 class ReservationsDB:
@@ -178,6 +181,11 @@ class ReservationsDB:
 
         return self.insert(HOSTS, new_host_str)
 
+    def insert_newUser(self, username):
+        new_user_str = "(\"{user}\")".format(user=username)
+
+        return self.insert(USERS, new_user_str)
+
     def del_entry(self, table, column, value):
         delete = "DELETE FROM {} WHERE {}={};".format(table, column, value)
         self.execute_query(delete)
@@ -260,7 +268,10 @@ class ReservationsDB:
         return self.print_query(query=query, num_cols=1)
    
     # Get list of all current scheduled reservations 
-    def get_listCurrentReservations(self, hostname=""):
+    def get_listCurrentReservations(self, username=""):
+        where_str = ""
+        if not username=="":
+            where_str = "WHERE {users}.username=\"{username}\"".format(users=USERS, username=username)
         query = "SELECT \
                     {hosts}.hostname, \
                     {users}.username, \
@@ -273,7 +284,8 @@ class ReservationsDB:
                     LEFT JOIN {hosts} ON {hosts}.hostname = res.host \
                     LEFT JOIN {users} ON {users}.username = res.user \
                     LEFT JOIN {restypes} as res_t ON res_t.id = res.reservation_type \
-                ORDER BY 1,2;".format(res=RESERVATIONS, hosts=HOSTS, users=USERS, restypes=RESTYPES)
+                {where} \
+                ORDER BY 1,2;".format(res=RESERVATIONS, hosts=HOSTS, users=USERS, restypes=RESTYPES, where=where_str)
         return self.print_query(query=query)
 
     def get_listReservationsHost(self, hostname, column):
@@ -307,12 +319,10 @@ def check_conflictsNewReservation(new_res):
     
     list_res = dbmain.get_listReservationsHost(new_res["host"], "*")
     
-    idx_begin_date = 4
-    idx_end_date = idx_begin_date+1
-    idx_restype = 3
+
     for res in list_res:
         # Check if there is any intersection of the timeslot
-        if (new_res["end_date"] <= res[idx_begin_date]) or (new_res["begin_date"] >= res[idx_end_date]):
+        if (new_res["end_date"] <= res[IDX_BEGIN_DATE]) or (new_res["begin_date"] >= res[IDX_END_DATE]):
             continue
         else:
             # if there is, need to check if the reservation types results in conflicts or not
@@ -321,36 +331,36 @@ def check_conflictsNewReservation(new_res):
             # print("\tPossible conflict (Time is conflicting with res {})".format(res[0]))
             # print("\tres: '{}'".format(res))
             # print("\tnew_res: '{}'".format(new_res))
-            # print("\t\tres[res_type]: '{}'".format(res[idx_restype]))
+            # print("\t\tres[res_type]: '{}'".format(res[IDX_RESTYPE]))
             # print("\t\tnew_res[res_type]: '{}'".format(new_res["res_type"]))
 
             # if either of the reservations (old conflicting one or new one) is of type 1 (RESERVED FULL)
             conflict_res = "<br/><br/>Conflicting reservation (id, username, hostname, reservation_type, begin_date, end_date):<br/>    {}".format(res)
-            if (res[idx_restype] == 1) or (int(new_res["res_type"]) == 1):
+            if (res[IDX_RESTYPE] == 1) or (int(new_res["res_type"]) == 1):
                 error_str = "New reservation conflicts with existing reservation. (One of them is of type 'RESERVED FULL SYSTEM')"
                 print("\t{}".format(error_str))
                 return True, error_str+conflict_res
             
             # if both reservations (old conflicting one and new one) are locking the FPGA (RESERVED FPGA)
-            if (res[idx_restype] == 2) and (int(new_res["res_type"]) == 2):
+            if (res[IDX_RESTYPE] == 2) and (int(new_res["res_type"]) == 2):
                 error_str = "New reservation conflicts with existing reservation. (Both of them are of type 'RESERVED FPGA')"
                 print("\t{}".format(error_str))
                 return True, error_str+conflict_res
             
             # if both reservations (old conflicting one and new one) are locking the GPU (RESERVED GPU)
-            if (res[idx_restype] == 3) and (int(new_res["res_type"]) == 3):
+            if (res[IDX_RESTYPE] == 3) and (int(new_res["res_type"]) == 3):
                 error_str = "New reservation conflicts with existing reservation. (Both of them are of type 'RESERVED GPU')"
                 print("\t{}".format(error_str))
                 return True, error_str+conflict_res
 
             # if old res is RESERVED_GPU or RESERVED_FPGA and new one is DEVELOPING or RUNNING PROGRAMS
-            if ((res[idx_restype] == 2) or (res[idx_restype] == 3)) and ((int(new_res["res_type"]) == 4) or (int(new_res["res_type"]) == 5)):
+            if ((res[IDX_RESTYPE] == 2) or (res[IDX_RESTYPE] == 3)) and ((int(new_res["res_type"]) == 4) or (int(new_res["res_type"]) == 5)):
                 error_str = "New reservation conflicts with existing reservation. (New reservation is of type 'DEVELOPING' or 'RUNNING PROGRAMS/SIMULATIONS', which conflicts with reservations of type 'RESERVED FPGA' or 'RESERVED GPU')"
                 print("\t{}".format(error_str))
                 return True, error_str+conflict_res
 
             # if old res is DEVELOPING or RUNNING PROGRAMS and new one is RESERVED_GPU or RESERVED_FPGA 
-            if ((res[idx_restype] == 4) or (res[idx_restype] == 5)) and ((int(new_res["res_type"]) == 2) or (int(new_res["res_type"]) == 3)):
+            if ((res[IDX_RESTYPE] == 4) or (res[IDX_RESTYPE] == 5)) and ((int(new_res["res_type"]) == 2) or (int(new_res["res_type"]) == 3)):
                 error_str = "New reservation conflicts with existing reservation. (Existing reservation is of type 'DEVELOPING' or 'RUNNING PROGRAMS/SIMULATIONS', which conflicts with new reservation of type 'RESERVED FPGA' or 'RESERVED GPU')"
                 print("\t{}".format(error_str))
                 return True, error_str+conflict_res

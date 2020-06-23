@@ -1,0 +1,91 @@
+body {
+    background-color: var(--bg);
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+footer {
+    text-align: center;
+    color: var(--text_footer);
+    padding-top: 3em;
+    line-height: 1.5em;
+}
+
+/* Center the avatar image inside this container */
+.imgcontainer {
+  text-align: center;
+  margin: 24px 0 12px 0;
+}
+/* Avatar image */
+img.avatar {
+  max-width: 300px;
+  width:30%;
+  height: auto;
+  border-radius: 0%;
+}
+
+
+/* TOP NAVIGATION BAR */
+/* Add a black background color to the top navigation */
+.topnav {
+  /* background-color: #333; */
+  background-color: var(--color_buttons_1);
+  overflow: hidden;
+}
+/* Style the links inside the navigation bar */
+.topnav a, .topnav span{
+  float: left;
+  color: #f2f2f2;
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
+  font-size: 17px;
+}
+/* Change the color of links on hover */
+.topnav a:hover {
+  background-color: var(--inesc_blue_v2);
+  /* color: black; */
+}
+/* Add a color to the active/current link */
+.topnav a.active {
+  background-color: var(--color_buttons_2);
+  color: white;
+}
+/* Style the username and logout button in the nav bar*/
+.topnav span, .topnav .logout{
+    float: right;
+}
+/* Username in the nav bar */
+.topnav span {
+    color: black;
+}
+.topnav .logout {
+    background-color: var(--grey_4);
+}
+.topnav a.logout:hover {
+  background-color: var(--grey_5);
+  /* color: white; */
+}
+/* When the screen is less than 600px wide, stack the links and the search field vertically instead of horizontally */
+@media screen and (max-width: 600px) {
+  .topnav a,  .topnav span {
+    float: none;
+    display: block;
+    text-align: left;
+    width: 100%;
+    margin: 0;
+    padding: 14px;
+  }
+}
+
+/* Change styles for span and cancel button on extra small screens */
+@media screen and (max-width: 300px) {
+  span.forgot {
+    display: block;
+    float: none;
+  }
+  .cancelbtn {
+    width: 100%;
+  }
+} 
+

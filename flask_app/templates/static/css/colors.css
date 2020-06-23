@@ -16,5 +16,29 @@
     --blue:   #268bd2;
     --cyan:   #2aa198;
     --green:  #859900;
-    --coolbg: #181a1b;
+
+    --bg: #181a1b;
+    --color_1: var(--base3);
+    --color_2: var(--base2);
+    --color_3: var(--base1);
+    --color_10: var(--base03);
+    --color_11: var(--base02);
+    --color_12: var(--base01);
+
+    --text_footer: var(--color_1);
+    
+    --grey_1: var(--base1);
+    --grey_2: var(--base0);
+    --grey_3: var(--base00);
+    --grey_4: #333;
+    --grey_5: rgb(46, 46, 46);
+
+    --inesc_blue: #00597d;
+    --inesc_blue_v2: #07455e;
+    --inesc_green: #a0c519;
+
+    --color_buttons_1: var(--inesc_blue);
+    --color_buttons_2: var(--inesc_green);
+    --color_buttons_cancel: var(--red);
+    --color_buttons_edit: var(--color_12);
 }

@@ -1,0 +1,41 @@
+.welcome {
+    color: var(--color_1);
+}
+
+.container {
+    max-width: inherit;
+    padding: 16px;
+}
+
+.div-title{
+    color: var(--color_1);
+    font-size: 16pt;
+    font-weight: bold;
+}
+
+.divider
+{
+	position: relative;
+	// margin-top: 90px;
+	height: 1px;
+}
+.div-transparent:before
+{
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 5%;
+	right: 5%;
+	width: 90%;
+	height: 1px;
+	background-image: linear-gradient(to right, transparent, var(--color_1) , transparent);
+}
+
+hr {
+    display: block;
+    height: 1px;
+    border: 0;
+    border-top: 1px solid #ccc;
+    margin: 1em 0;
+    padding: 0;
+}

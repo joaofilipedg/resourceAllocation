@@ -1,29 +1,12 @@
-<!DOCTYPE html>
-<html>
+{% extends 'layouts/base.html' %}
 
-<head>
-    <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/global.css')}}">
-
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <script type=text/javascript src="{{url_for('static', filename='js/variables.js')}}"></script>
-    <script type=text/javascript src="{{url_for('static', filename='js/functions.js')}}"></script>
+{% block header %}
     <script type=text/javascript src="{{url_for('static', filename='js/edit_db.js')}}"></script>
-
     <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
-
-</head>
-
-<body>
-    <div class="imgcontainer">
-        <img src="{{url_for('static', filename='img/INESCID_logo.png')}}" alt="Avatar" class="avatar">
-
-        
-    </div>
-
-    <h1><span class="welcome">Welcome to the HPCAS Resource Allocation Page</span></h1>
+{% endblock %}
 
 
+{% block body %}
     <!-- HOSTS TABLE -->
     <div class="container">
         <p><span class="div-title">List of Hosts</span></p>
@@ -91,11 +74,10 @@
                             var disable_buttons = document.getElementsByName("btndisable");
                             for (i = 0; i < disable_buttons.length; i++) {
                                 var but_aux_d = disable_buttons[i];
-                                var enabled = hosts[i][editdb_idx_fpga+1];
-                                
+                                var enabled = hosts[i][parseInt(editdb_idx_fpga)+1];
                                 // If host is disabled change Color and Text
                                 if (enabled == 0) {
-                                    but_aux_d.style.background= "#859900";
+                                    but_aux_d.style.background= "#a0c519";
                                     but_aux_d.innerHTML= "Enable";
                                 }
 
@@ -172,8 +154,4 @@
             </form>
         </div>
     </div>
-    
-
-</body>
-
-</html>
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends 'layouts/base_login.html' %}
+
+{% block navbar %}
+    <nav class="topnav">
+        {% if g.user %}
+        <a class="nav-m" href="{{ url_for('auth.home') }}">Home</a>
+        <a class="nav-m" href="{{ url_for('auth.reservations') }}">New Reservation</a>
+        <a class="nav-m" href="{{ url_for('auth.edit_db') }}">Hosts</a>
+        <a class="logout" href="{{ url_for('auth.logout') }}" >Log Out</a>
+        <span>{{ g.user['username'] }}</span>
+        {% endif %}
+    </nav>
+    <script>
+        // Script to change color of the current page in the nav bar
+        var pgurl = window.location.href.substr(window.location.href.lastIndexOf("/"));
+        var nav_links = document.getElementsByClassName("nav-m");
+        for (let index = 0; index < nav_links.length; index++) {
+            var element = nav_links[index];
+            if (element.attributes.href.value == pgurl || element.attributes.href.value  == '') {
+                element.classList.add("active");
+            }
+        }
+    </script>
+{% endblock %}

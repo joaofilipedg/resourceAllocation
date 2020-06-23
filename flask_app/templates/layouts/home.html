@@ -1,0 +1,49 @@
+{% extends 'layouts/base.html' %}
+
+{% block body %}
+    {% if current_user.is_authenticated %}
+        <h3>Hey {{ current_user.username }}!!</h3>
+
+        <!-- LIST OF CURRENT RESERVATIONS -->
+        <div class="container">
+            <p><span class="div-title">List of your current reservations</span></p>
+            <div class="my-div">
+                <form name="cancel_res_form" onsubmit="return false">
+                    <div class="res-table">
+                        <div class="row">
+                            <div class="col header">Hostname</div>
+                            <div class="col header">Username</div>
+                            <div class="col header">Reservation Type</div>
+                            <div class="col header">Start Date</div>
+                            <div class="col header">End Date</div>
+                        </div>
+                        {%for res in curr_res%}
+                        <hr />
+                        <div class="row">
+                            {%for i in range(0, 5)%}
+                            <div class="col">{{res[i]}}</div>
+                            {%endfor%}
+                            <div class="col">
+                                <button type="submit" class="cancelBtn" name="btncancel" value={{res[5]}}>Cancel</button>
+                            </div>
+                        </div>
+                        {%endfor%}
+                        <script>
+                            // Need to get the reservation ID to tell the server which one shoulld be canceled
+                            if (first_b) {
+                                first_b = false;
+                                var cancel_buttons = document.getElementsByName("btncancel");
+                                for (i = 0; i < cancel_buttons.length; i++) {
+                                    var but_aux = cancel_buttons[i];
+                                    but_aux.onclick = function () {
+                                        cancelReservation(this.value);
+                                    };
+                                }
+                            }
+                        </script>
+                    </div>
+                </form>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}

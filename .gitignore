@@ -9,3 +9,5 @@ config_files/certs/*
 !INESCID_logo.png
 sql_changedb.py
 def_users.csv
+query_ldap
+cloned_repo

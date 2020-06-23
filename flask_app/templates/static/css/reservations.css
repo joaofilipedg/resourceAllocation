@@ -1,6 +1,6 @@
 .form-label{
     font-size: 16pt;
-    color: var(--base03);
+    color: var(--color_10);
     padding-left: 10px;
 }
 
@@ -50,41 +50,25 @@ div:nth-child(5) { grid-row-start: 3; } */
     font-size:16px;
     font-weight: bold;
     /* color: var(--base02); */
-    color: var(--base2);
+    color: var(--color_2);
 }
 
 select option {
-    background: var(--base3);
+    background: var(--color_1);
 }
 
 
 
 /* DATERANGEPICKER STUFF */
-/* .daterangepicker {
-    border: 1px solid var(--base03);
-    border-radius: 0px; 
-    background-image: url(../img/noisy_textures/sol_base1.png);
-    
-} */
-
-/* .daterangepicker .calendar-table {
-    background-color: var(--base2)  !important;
-} */
-
-
-/* td.off.ends {
-    background-color: var(--base3) !important;
-} */
-
 .input-daterangepicker {
     font-size: 47%;
 }
 
 td.active.start-date.available, td.active.end-date.available {
-    background-color: var(--base03) !important;
+    background-color: var(--color_10) !important;
 }
 td.in-range.available {
-    background-color: var(--base01) !important;
+    background-color: var(--color_10) !important;
 }
 /* select.hourselect, select.minuteselect {
     background-image: url(../img/noisy_textures/sol_base2.png) !important;
@@ -94,7 +78,7 @@ td.in-range.available {
     width: auto !important;
 }
 .cancelBtn {
-    background-color: var(--base01) !important;
+    background-color: var(--color_buttons_cancel) !important;
 }
 
 
@@ -104,8 +88,6 @@ span.drp-selected {
 }
 
 .res-table {
-  /* display: grid; */
-  /* grid-template-columns: repeat(5, minmax(100px, 1fr)); */
   max-width: inherit;
 }
 
@@ -121,7 +103,7 @@ span.drp-selected {
     font-size: 100%;
     align-self: center;
     text-align: center;
-    color: var(--base2)
+    color: var(--color_2)
 }
 
 .res-table .col.header{
@@ -129,17 +111,41 @@ span.drp-selected {
 }
 
 
-/* .cancel-res-btn { */
-    /* background-color: var(--base0); */
-    /* display: inline-block; */
-/* } */
+/* LIST FREE HOSTS */
+.free-div {
+  padding-bottom: 20px;
+}
 
+/* Remove margins and padding from the list */
+.l-free-hosts {
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+}
 
-hr {
-    display: block;
-    height: 1px;
-    border: 0;
-    border-top: 1px solid #ccc;
-    margin: 1em 0;
-    padding: 0;
+/* Style the list items */
+.l-free-hosts li {
+  cursor: pointer;
+  position: relative;
+  padding: 12px 8px 12px 40px;
+  /* background: rgb(186, 188, 189); */
+  background: var(--color_1);
+  font-size: 18px;
+  transition: 0.2s;
+
+  /* make the list items unselectable */
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Set all odd list items to a different color (zebra-stripes) */
+.l-free-hosts li:nth-child(odd) {
+  background: var(--color_2);
+}
+
+/* Darker background-color on hover */
+.l-free-hosts li:hover {
+  background: var(--color_3);
 }
