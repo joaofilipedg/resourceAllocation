@@ -1,0 +1,223 @@
+{% extends 'layouts/base.html' %}
+
+{% block header %}
+<!-- <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/multiselect.css')}}"> -->
+<link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/vanillaSelectBox.css')}}">
+<script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
+
+<script type=text/javascript src="{{url_for('static', filename='js/vanillaSelectBox.js')}}"></script>
+<script type=text/javascript src="{{url_for('static', filename='js/edit_db.js')}}"></script>
+
+<!-- <script type=text/javascript src="{{url_for('static', filename='js/jquery.multiselect.min.js')}}"></script> -->
+
+{% endblock %}
+
+
+{% block body %}
+    <div class="container">
+        <!-- CPUs TABLE -->
+        <p><span class="div-title">List of CPUs</span></p>
+        <div class="my-div">
+            <form name="edit_comp_form" onsubmit="return false">
+                <div class="comps-table">
+                    <div class="row">
+                        <div class="col header">Name</div>
+                        <div class="col header">Generation</div>
+                        <div class="col header">Manufacturer</div>
+                        <div class="col header">In use</div>
+                    </div>
+
+                    <!-- LOOP FOR EACH HOST IN THE DB -->
+                    {% for cpu_i in range(0, num_cpus) %}
+                        {% set cpu = cpus[cpu_i] %}
+                        {% set cpu_id = cpu[0] %}
+                        <hr class="special-hr"/>
+                        <div class="row">
+                            <!-- LOOP ACROSS EACH ENTRY OF THE COMPONENT -->
+                            {% for j in range(2, 5) %}
+                                <div class="col" name={{ cpu_id ~ "_" ~ j }}>{{ cpu[j] }}</div>
+                            {% endfor %}
+
+                            <!-- TODO: ADD A FIELD TO CHECK IF COMPONENT IS ALLOCATED TO ANY HOST -->
+                            <div class="col" > ... </div>
+                            
+                            <!-- Edit Host Button -->
+                            <div class="col">
+                                <button type="submit" class="editBtn" name="btnedit" value={{cpu_id}}>Edit</button>
+                            </div>
+                            <!-- Remove Host Button-->
+                            <div class="col">
+                                <button type="submit" class="removeBtn" name="btnremove" value={{cpu_id}}>Remove</button>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </form>
+        </div>
+
+        <!-- GPUs TABLE -->
+        <p><span class="div-title">List of GPUs</span></p>
+        <div class="my-div">
+            <form name="edit_comp_form" onsubmit="return false">
+                <div class="comps-table">
+                    <div class="row">
+                        <div class="col header">Name</div>
+                        <div class="col header">Generation</div>
+                        <div class="col header">Manufacturer</div>
+                        <div class="col header">In use</div>
+                    </div>
+
+                    <!-- LOOP FOR EACH HOST IN THE DB -->
+                    {% for gpu_i in range(0, num_gpus) %}
+                        {% set gpu = gpus[gpu_i] %}
+                        {% set gpu_id = gpu[0] %}
+                        <hr class="special-hr"/>
+                        <div class="row">
+                            <!-- LOOP ACROSS EACH ENTRY OF THE COMPONENT -->
+                            {% for j in range(2, 5) %}
+                                <div class="col" name={{ gpu_id ~ "_" ~ j }}>{{ gpu[j] }}</div>
+                            {% endfor %}
+
+                            <!-- TODO: ADD A FIELD TO CHECK IF COMPONENT IS ALLOCATED TO ANY HOST -->
+                            <div class="col" > ... </div>
+                            
+                            <!-- Edit Host Button -->
+                            <div class="col">
+                                <button type="submit" class="editBtn" name="btnedit" value={{gpu_id}}>Edit</button>
+                            </div>
+                            <!-- Remove Host Button-->
+                            <div class="col">
+                                <button type="submit" class="removeBtn" name="btnremove" value={{gpu_id}}>Remove</button>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </form>
+        </div>
+
+        <!-- FPGAs TABLE -->
+        <p><span class="div-title">List of FPGAs</span></p>
+        <div class="my-div">
+            <form name="edit_comp_form" onsubmit="return false">
+                <div class="comps-table">
+                    <div class="row">
+                        <div class="col header">Name</div>
+                        <div class="col header">Generation</div>
+                        <div class="col header">Manufacturer</div>
+                        <div class="col header">In use</div>
+                    </div>
+
+                    <!-- LOOP FOR EACH HOST IN THE DB -->
+                    {% for fpga_i in range(0, num_fpgas) %}
+                        {% set fpga = fpgas[fpga_i] %}
+                        {% set fpga_id = fpga[0] %}
+                        <hr class="special-hr"/>
+                        <div class="row">
+                            <!-- LOOP ACROSS EACH ENTRY OF THE COMPONENT -->
+                            {% for j in range(2, 5) %}
+                                <div class="col" name={{ fpga_id ~ "_" ~ j }}>{{ fpga[j] }}</div>
+                            {% endfor %}
+
+                            <!-- TODO: ADD A FIELD TO CHECK IF COMPONENT IS ALLOCATED TO ANY HOST -->
+                            <div class="col" > ... </div>
+                            
+                            <!-- Edit Host Button -->
+                            <div class="col">
+                                <button type="submit" class="editBtn" name="btnedit" value={{fpga_id}}>Edit</button>
+                            </div>
+                            <!-- Remove Host Button-->
+                            <div class="col">
+                                <button type="submit" class="removeBtn" name="btnremove" value={{fpga_id}}>Remove</button>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Script for the buttons of each host -->
+    <script>
+        if (editcomp_first_h) {
+            editcomp_first_h = false;
+            var cpus = {{ cpus| safe }};
+            var gpus = {{ gpus| safe }};
+            var fpgas = {{ fpgas| safe }};
+
+            // EDIT BUTTONS
+            var edit_buttons = document.getElementsByName("btnedit");
+            for (i = 0; i < edit_buttons.length; i++) {
+                var but_aux_e = edit_buttons[i];
+                but_aux_e.onclick = function () {
+                    editComponent(this, cpus, gpus, fpgas);
+                };
+            }
+
+            // REMOVE BUTTONS
+            var remove_buttons = document.getElementsByName("btnremove");
+            for (i = 0; i < remove_buttons.length; i++) {
+                var but_aux_r = remove_buttons[i];
+                but_aux_r.onclick = function () {
+                    removeComponent(this.value);
+                };
+            }
+        }
+    </script>
+
+
+    <!-- <hr> -->
+    <div class="divider div-transparent"></div>
+
+
+    <!-- ADD NEW COMPONENT -->
+    <div class="container">
+        <p><span class="div-title">Add New Component</span></p>
+        <div class="my-div">
+            <form name="new_comp_form" action="/new_component" method="post" onsubmit="return verifyNewComponent()">
+                <div class="form-body comp-form">
+                    <div class="row">
+    
+                        <!-- Compponent type -->
+                        <div class="col a">
+                            <label for="comptype">Type</label>
+                            <select name="comptype" id="comptype">
+                                <option disabled selected value style="display:none"> -- Select -- </option>
+                                <option value=0>CPU</option>
+                                <option value=1>GPU</option>
+                                <option value=2>FPGA</option>
+                            </select>
+                            <script>
+                                let mySelectcomp = new vanillaSelectBox("#comptype", {
+                                    "maxHeight": 200
+                                });
+                            </script>
+                        </div>
+    
+                        <!-- Component Name -->
+                        <div class="col b">
+                            <label for="compname">Name</label>
+                            <input type="text" name="compname" id="compname" class="form-control" placeholder="Eg. Titan Xp">
+                        </div>
+    
+                        <!-- Component Brand -->
+                        <div class="col c">
+                            <label for="compbrand">Brand</label>
+                            <input type="text" name="compbrand" id="compbrand" class="form-control" placeholder="Eg. NVIDIA">
+                        </div>   
+
+                        <!-- Component Generation -->
+                        <div class="col d">
+                            <label for="compgen">Generation</label>
+                            <input type="text" name="compgen" id="compgen" class="form-control" placeholder="Eg. Pascal">
+                        </div>                
+    
+                        <!-- Submit Button -->
+                        <div class="col e">
+                            <button type="submit" id="confirm_comp" class="but_res">Confirm</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

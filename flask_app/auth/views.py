@@ -3,9 +3,10 @@ from flask import render_template, request, redirect, url_for, Blueprint, g, fla
 from flask_login import current_user, login_user, logout_user, login_required
 from datetime import datetime
 
-from flask_app.app import app, scheduler, dbmain, login_manager, dbldap
+from flask_app.app import app, scheduler, login_manager, dbldap
 from flask_app.auth.models import User, LoginForm
 import flask_app.src.sql_sqlalchemy as mydb
+from flask_app.src.sql_sqlalchemy import dbmain, CODE_CPU, CODE_GPU, CODE_FPGA
 
 auth = Blueprint('auth', __name__)
 
@@ -72,7 +73,7 @@ def logout():
 @auth.route('/reservations')
 @login_required
 def reservations():
-    list_hosts = dbmain.get_listHosts()
+    list_hosts = dbmain.get_listEnabledHosts()
     print(list_hosts)
 
     list_restypes, list_restypes_ids = dbmain.get_listResTypes()
@@ -141,17 +142,36 @@ def cancel_reservation():
     return "OK"
 
 # Edit page, to edit list of hosts, add new host,
-@auth.route('/edit')
+@auth.route('/edit_hosts')
 @login_required
-def edit_db():
+def edit_hosts():
     full_list_hosts = dbmain.get_fullListHosts()
     print(full_list_hosts)
+
+    list_cpus, list_cpu_ids = dbmain.get_listComponents(CODE_CPU)
+    list_gpus, list_gpu_ids = dbmain.get_listComponents(CODE_GPU)
+    list_fpgas, list_fpga_ids = dbmain.get_listComponents(CODE_FPGA)
+
+    list_hostscomps = dbmain.get_listHostsComponents()
+    print(list_hostscomps)
+    dict_hostgpus = {host[0]: [] for host in full_list_hosts}
+    dict_hostfpgas = {host[0]: [] for host in full_list_hosts}
+    for entry in list_hostscomps:
+        if entry[1] == 1:
+            dict_hostgpus[entry[0]].append(entry[2])
+        else:
+            dict_hostfpgas[entry[0]].append(entry[2])
+    print(dict_hostgpus)
+    print(dict_hostfpgas)
+
+
+
 
     # list_restypes, list_restypes_ids = dbmain.get_listResTypes()
     # print(list_restypes)
     # print(list_restypes_ids)
 
-    return render_template('layouts/edit_db.html', hosts=full_list_hosts)
+    return render_template('layouts/edit_hosts.html', all_hostgpus=dict_hostgpus, all_hostfpgas=dict_hostfpgas, hosts=full_list_hosts, cpus=list_cpus, cpu_ids=list_cpu_ids, num_cpus=len(list_cpus), gpus=list_gpus, gpu_ids=list_gpu_ids, num_gpus=len(list_gpus), fpgas=list_fpgas, fpga_ids=list_fpga_ids, num_fpgas=len(list_fpgas))
 
 # Enable/Disable specific Host (POST only)
 @auth.route('/toggle_host', methods=["POST"])
@@ -180,10 +200,19 @@ def update_host():
     args = request.get_json()
     hostname = args.get("hostname", "")
     ipaddr = args.get("ip", "")
+    cpu = int(args.get("cpu", "")[0])
     gpu = args.get("gpu", "")
     fpga = args.get("fpga", "")
 
-    dbmain.update_hostGPUFPGA(hostname, ipaddr, gpu, fpga)
+    # TODO:
+    print(hostname)
+    print(ipaddr)
+    print(cpu)
+    print(gpu)
+    print(fpga)
+    optional_comps = {"gpu": gpu, "fpga": fpga}
+    print(optional_comps)
+    dbmain.update_configHost(hostname=hostname, ipaddr=ipaddr, cpu=cpu, optional_comps=optional_comps)
 
     return "OK"
 
@@ -194,11 +223,11 @@ def new_host():
     full_list_hosts = dbmain.get_fullListHosts()
     list_hostnames = [i[0] for i in full_list_hosts]
     list_ipaddrs = [i[1] for i in full_list_hosts]
-    print(list_hostnames)
-    print(list_ipaddrs)
+    # print(list_hostnames)
+    # print(list_ipaddrs)
 
     new_host = {}
-    
+
     # check if hostname is already registered
     new_host["hostname"] = request.form["hostname"]
     if new_host["hostname"] in list_hostnames:
@@ -207,14 +236,95 @@ def new_host():
     
     # check if ipaddr is already in use
     new_host["ipaddr"] = request.form["ipaddr"]
-    print(type(new_host["ipaddr"]))
+    # print(type(new_host["ipaddr"]))
     if int(new_host["ipaddr"]) in list_ipaddrs:
         return "ERROR: IP address X.X.X.{} is already being used!".format(new_host["ipaddr"])
 
-    new_host["hasgpu"] = request.form["hasgpu"]
-    new_host["hasfpga"] = request.form["hasfpga"]
 
-    dbmain.insert_newHost(new_host)
+    new_host["cpu"] = request.form["cpu"]
     
-    return redirect(url_for('auth.edit_db'))
+    # confirm if cpuID is valid
+    _, list_cpu_ids = dbmain.get_listComponents(CODE_CPU)
+    print(list_cpu_ids)
+    # print(new_host["cpu"])
+    # print(int(new_host["cpu"]))
+    if int(new_host["cpu"]) not in list_cpu_ids:
+        return "ERROR: CPU ID is not valid!"
+    
+    form_keys = request.form.keys()
+    
+    # confirms if there was a GPU selected
+    if "hasgpu" in form_keys:
+        new_host["gpu"] = request.form.getlist("hasgpu") #needs to get the list, because there could be more than 1
+        
+        # confirm if all gpuIDs are valid
+        _, list_gpu_ids = dbmain.get_listComponents(CODE_GPU)
+        for new_host_gpu in new_host["gpu"]:
+            if int(new_host_gpu) not in list_gpu_ids:
+                return "ERROR: GPU ID is not valid!"
 
+    if "hasfpga" in form_keys:
+        new_host["fpga"] = request.form.getlist("hasfpga")
+
+        # confirm if all fpgaIDs are valid
+        _, list_fpga_ids = dbmain.get_listComponents(CODE_FPGA)
+        for new_host_fpga in new_host["fpga"]:
+            if int(new_host_fpga) not in list_fpga_ids:
+                return "ERROR: FPGA ID is not valid!"
+
+    print(new_host)
+    
+    dbmain.insert_newHost(new_host)
+
+    return redirect(url_for('auth.edit_hosts'))
+
+# Edit page, to edit list of hosts, add new host,
+@auth.route('/edit_components')
+@login_required
+def edit_components():
+    # full_list_hosts = dbmain.get_fullListHosts()
+    # print(full_list_hosts)
+
+    list_cpus = dbmain.get_fullListComponents(CODE_CPU)
+    list_gpus = dbmain.get_fullListComponents(CODE_GPU)
+    list_fpgas = dbmain.get_fullListComponents(CODE_FPGA)
+    print(list_cpus)
+    return render_template('layouts/edit_components.html', cpus=list_cpus, num_cpus=len(list_cpus), gpus=list_gpus, num_gpus=len(list_gpus), fpgas=list_fpgas, num_fpgas=len(list_fpgas))
+
+
+
+# Add new component page (POST only)
+@auth.route('/new_component', methods=["POST"])
+@login_required
+def new_component():
+    
+    list_components, _ = dbmain.get_listComponents()
+        
+    print(list_components)
+
+    new_comp = {}
+
+    # check if component with the same name is already registered
+    new_comp["name"] = request.form["compname"]
+    if new_comp["name"] in list_components:
+        return "ERROR: Component {} is already registered!".format(new_comp["name"])
+
+    new_comp["type"] = request.form["comptype"]
+    new_comp["brand"] = request.form["compbrand"]
+    new_comp["gen"] = request.form["compgen"]
+
+    print(new_comp)
+
+    # dbmain.insert_newComponent(new_comp)
+
+    return redirect(url_for('auth.edit_components'))
+
+# Remove specific Component (POST only)
+@auth.route('/remove_component', methods=["POST"])
+@login_required
+def remove_component():
+    hostname = request.get_json().get("hostname", "")
+    print(hostname)
+
+    dbmain.del_host(hostname)
+    return "OK"

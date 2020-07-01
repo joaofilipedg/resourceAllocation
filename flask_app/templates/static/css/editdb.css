@@ -5,7 +5,7 @@
 .hosts-table .row {
   grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
+  grid-template-columns: repeat(9, minmax(0, 1fr));
 }
 
 .hosts-table .col {
@@ -39,10 +39,18 @@
 }
 
 .form-body.host-form {
-  grid-template-columns: repeat(5, minmax(100px, 1fr));
+  grid-template-columns: repeat(6, minmax(100px, 1fr));
 }
 
 .form-body.host-form .row {
+  grid-template-columns: repeat(6, minmax(100px, 1fr));
+}
+
+.form-body.comp-form {
+  grid-template-columns: repeat(5, minmax(100px, 1fr));
+}
+
+.form-body.comp-form .row {
   grid-template-columns: repeat(5, minmax(100px, 1fr));
 }
 
@@ -50,18 +58,44 @@
   font-size: 55%;
 }
 
-#mySelectgpu, #mySelectfpga {
+/* #mySelectcpu, #mySelectgpu, #mySelectfpga {
   padding: 0 0;
   margin: 0 0;
-  width: auto;
-}
+  width: 95%;
+} */
 
 #myInputip {
   padding: 0 0;
   margin: 0 0;
   width: 50%;
+  align-self: center;
+  text-align: center;
 }
 
 /* .removeBtn {
   background-color: var(--base01);
 } */
+
+
+.comps-table {
+  max-width: inherit;
+}
+
+.comps-table .row {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.comps-table .col {
+    border-radius: 5px;
+    padding: 0px;
+    font-size: 100%;
+    align-self: center;
+    text-align: center;
+    color: var(--color_2);
+}
+
+.comps-table .col.header{
+    font-weight: bold;
+}

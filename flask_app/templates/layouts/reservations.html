@@ -26,7 +26,7 @@
                             <select name="host" id="host">
                                 <option disabled selected value style="display:none"> -- select an option -- </option>
                                 {%for host in hosts%}
-                                <option value={{host}}>{{host}}</option>
+                                    <option value={{host}}>{{host}}</option>
                                 {%endfor%}
                             </select>
                             
@@ -152,7 +152,7 @@
         <div class="free-div">
             <ul class="l-free-hosts">
                 {%for host in free_hosts%}
-                <li>{{ host }}</li>
+                    <li>{{ host }}</li>
                 {%endfor%}
             </ul>
         </div>

@@ -37,7 +37,7 @@ scheduler = APScheduler()
 scheduler.init_app(app)
 scheduler.start()
 
-dbmain = mydb.ReservationsDB(mydb.SQLITE, dbname="sqlite_db/res_alloc2.db")
+from flask_app.src.sql_sqlalchemy import dbmain
 
 from flask_app.auth.views import auth
 app.register_blueprint(auth)
