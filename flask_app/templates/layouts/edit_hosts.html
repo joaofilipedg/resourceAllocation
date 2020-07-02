@@ -101,20 +101,23 @@
                             <div class="col" name={{ hostname ~ "_" ~ 6 }}>In use</div> 
                         {% endif %}
 
-                        <!-- Edit Host Button -->
-                        <div class="col">
-                            <button type="submit" class="editBtn" name="btnedit" value={{hostname}}>Edit</button>
-                        </div>
+                        {% if current_user.super_user == 1 %}
+                        <!-- ONLY SHOW BUTTONS IF USER IS ADMIN -->
+                            <!-- Edit Host Button -->
+                            <div class="col">
+                                <button type="submit" class="editBtn" name="btnedit" value={{hostname}}>Edit</button>
+                            </div>
 
-                        <!-- Disable Host Button-->
-                        <div class="col">
-                            <button type="submit" class="disableBtn" name="btndisable" value={{hostname}}>Disable</button>
-                        </div>
+                            <!-- Disable Host Button-->
+                            <div class="col">
+                                <button type="submit" class="disableBtn" name="btndisable" value={{hostname}}>Disable</button>
+                            </div>
 
-                        <!-- Remove Host Button-->
-                        <div class="col">
-                            <button type="submit" class="removeBtn" name="btnremove" value={{hostname}}>Remove</button>
-                        </div>
+                            <!-- Remove Host Button-->
+                            <div class="col">
+                                <button type="submit" class="removeBtn" name="btnremove" value={{hostname}}>Remove</button>
+                            </div>
+                        {% endif %}
                     </div>
                     {% endfor %}
 
@@ -170,140 +173,144 @@
                         }
                     </script>
 
-                    <!-- Script for the buttons of each host -->
-                    <script>
-                        if (editdb_first_h) {
-                            editdb_first_h = false;
-                            var hosts   = {{ hosts|safe }};
-                            var cpus    = {{ cpus|safe }};
-                            var gpus    = {{ gpus|safe }};
-                            var fpgas   = {{ fpgas|safe }};
+                    {% if current_user.super_user == 1 %}
+                    <!-- ONLY SHOW BUTTONS IF USER IS ADMIN -->
+                        <!-- Script for the buttons of each host -->
+                        <script>
+                            if (editdb_first_h) {
+                                editdb_first_h = false;
+                                var hosts   = {{ hosts|safe }};
+                                var cpus    = {{ cpus|safe }};
+                                var gpus    = {{ gpus|safe }};
+                                var fpgas   = {{ fpgas|safe }};
 
-                            // EDIT BUTTONS
-                            var edit_buttons = document.getElementsByName("btnedit");
-                            for (i = 0; i < edit_buttons.length; i++) {
-                                var but_aux_e = edit_buttons[i];
-                                but_aux_e.onclick = function () {
-                                    editHost(this, cpus, gpus, fpgas);
-                                };
-                            }
-
-                            // DISABLE BUTTONS
-                            var disable_buttons = document.getElementsByName("btndisable");
-                            for (i = 0; i < disable_buttons.length; i++) {
-                                var but_aux_d = disable_buttons[i];
-                                var enabled = hosts[i][parseInt(editdb_idx_enabled)];
-                                // If host is disabled change Color and Text
-                                if (enabled == 0) {
-                                    but_aux_d.style.background= "#a0c519";
-                                    but_aux_d.innerHTML= "Enable";
+                                // EDIT BUTTONS
+                                var edit_buttons = document.getElementsByName("btnedit");
+                                for (i = 0; i < edit_buttons.length; i++) {
+                                    var but_aux_e = edit_buttons[i];
+                                    but_aux_e.onclick = function () {
+                                        editHost(this, cpus, gpus, fpgas);
+                                    };
                                 }
 
-                                but_aux_d.onclick = function () {
-                                    toggleEnableHost(this.value);
-                                };
+                                // DISABLE BUTTONS
+                                var disable_buttons = document.getElementsByName("btndisable");
+                                for (i = 0; i < disable_buttons.length; i++) {
+                                    var but_aux_d = disable_buttons[i];
+                                    var enabled = hosts[i][parseInt(editdb_idx_enabled)];
+                                    // If host is disabled change Color and Text
+                                    if (enabled == 0) {
+                                        but_aux_d.style.background= "#a0c519";
+                                        but_aux_d.innerHTML= "Enable";
+                                    }
+
+                                    but_aux_d.onclick = function () {
+                                        toggleEnableHost(this.value);
+                                    };
+                                }
+                                
+                                // REMOVE BUTTONS
+                                var remove_buttons = document.getElementsByName("btnremove");
+                                for (i = 0; i < remove_buttons.length; i++) {
+                                    var but_aux_r = remove_buttons[i];                           
+                                    but_aux_r.onclick = function () {
+                                        removeHost(this.value);
+                                    };
+                                }
                             }
-                            
-                            // REMOVE BUTTONS
-                            var remove_buttons = document.getElementsByName("btnremove");
-                            for (i = 0; i < remove_buttons.length; i++) {
-                                var but_aux_r = remove_buttons[i];                           
-                                but_aux_r.onclick = function () {
-                                    removeHost(this.value);
-                                };
-                            }
-                        }
-                    </script>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- <hr> -->
-    <div class="divider div-transparent"></div>
-
-
-    <!-- ADD NEW HOST -->
-    <div class="container">
-        <p><span class="div-title">Add New Host</span></p>
-        <div class="my-div">
-            <form name="new_host_form" action="/new_host" method="post" onsubmit="return verifyNewHost()">
-                <div class="form-body host-form">
-                    <div class="row">
-                        
-                        <!-- Hostname -->
-                        <div class="col a">
-                            <label for="hostname">Hostname</label>
-                            <input type="text" name="hostname" id="hostname" class="form-control" placeholder="Hostname">
-                        </div>
-
-                        <!-- IP Address -->
-                        <div class="col b">
-                            <label for="ipaddr">IP ending</label>
-                            <input type="text" name="ipaddr" id="ipaddr" class="form-control" placeholder="XXX">
-                        </div>
-
-                        <!-- CPU -->
-                        <div class="col c">
-                            <label for="cpu">CPU</label>
-                            <select name="cpu" id="cpu">
-                                <option disabled selected value style="display:none"> -- Select -- </option>
-                                {%for i in range(0,num_cpus)%}
-                                    <option value={{cpu_ids[i]}}>{{cpus[i]}}</option>
-                                {%endfor%}                            
-                            </select>
-                            <script>
-                                let mySelectcpu = new vanillaSelectBox("#cpu", {
-                                    "maxHeight": 200
-                                    // "placeHolder": "--Select--" 
-                                });
-                            </script>
-                        </div>
-
-                        <!-- GPU -->
-                        <div class="col d">
-                            <label for="hasgpu">GPU</label> 
-                            <select id="hasgpu" name="hasgpu" multiple size="1">
-                                {%for i in range(0,num_gpus)%}
-                                    <option value={{gpu_ids[i]}}>{{gpus[i]}}</option>
-                                {%endfor%}
-                            </select> 
-                        <script> 
-                            let mySelectgpu = new vanillaSelectBox("#hasgpu", {
-                                    "maxHeight": 200,
-                                    "placeHolder": "-- None --",
-                                    translations: { "items": "GPUs" }
-                            });
                         </script>
-
-                        </div>
-    
-                        <!-- FPGA -->
-                        <div class="col e">
-                            <label for="hasfpga">FPGA</label>
-                            <select id="hasfpga" name="hasfpga" multiple size="1">
-                                {%for i in range(0,num_fpgas)%}
-                                    <option value={{fpga_ids[i]}}>{{fpgas[i]}}</option>
-                                {%endfor%}
-                            </select>
-                            <script>
-                                let mySelectfpga = new vanillaSelectBox("#hasfpga", { 
-                                    "maxHeight": 200,
-                                    "placeHolder": "-- None --",
-                                    translations: {"items": "FPGAs"}
-                                });
-                            </script>
-                        </div>
-
-                        <!-- Submit Button -->
-                        <div class="col f">
-                            <button type="submit" id="confirm_host" class="but_res">Confirm</button>
-                        </div>
-                    </div>            
+                    {% endif %}
                 </div>
             </form>
         </div>
     </div>
 
+    {% if current_user.super_user == 1 %}
+    <!-- ONLY ALLOW ADDING NEW HOST IF USER IS ADMIN -->
+        <!-- <hr> -->
+        <div class="divider div-transparent"></div>
 
+
+        <!-- ADD NEW HOST -->
+        <div class="container">
+            <p><span class="div-title">Add New Host</span></p>
+            <div class="my-div">
+                <form name="new_host_form" action="/new_host" method="post" onsubmit="return verifyNewHost()">
+                    <div class="form-body host-form">
+                        <div class="row">
+                            
+                            <!-- Hostname -->
+                            <div class="col a">
+                                <label for="hostname">Hostname</label>
+                                <input type="text" name="hostname" id="hostname" class="form-control" placeholder="Hostname">
+                            </div>
+
+                            <!-- IP Address -->
+                            <div class="col b">
+                                <label for="ipaddr">IP ending</label>
+                                <input type="text" name="ipaddr" id="ipaddr" class="form-control" placeholder="XXX">
+                            </div>
+
+                            <!-- CPU -->
+                            <div class="col c">
+                                <label for="cpu">CPU</label>
+                                <select name="cpu" id="cpu">
+                                    <option disabled selected value style="display:none"> -- Select -- </option>
+                                    {%for i in range(0,num_cpus)%}
+                                        <option value={{cpu_ids[i]}}>{{cpus[i]}}</option>
+                                    {%endfor%}                            
+                                </select>
+                                <script>
+                                    let mySelectcpu = new vanillaSelectBox("#cpu", {
+                                        "maxHeight": 200
+                                        // "placeHolder": "--Select--" 
+                                    });
+                                </script>
+                            </div>
+
+                            <!-- GPU -->
+                            <div class="col d">
+                                <label for="hasgpu">GPU</label> 
+                                <select id="hasgpu" name="hasgpu" multiple size="1">
+                                    {%for i in range(0,num_gpus)%}
+                                        <option value={{gpu_ids[i]}}>{{gpus[i]}}</option>
+                                    {%endfor%}
+                                </select> 
+                            <script> 
+                                let mySelectgpu = new vanillaSelectBox("#hasgpu", {
+                                        "maxHeight": 200,
+                                        "placeHolder": "-- None --",
+                                        translations: { "items": "GPUs" }
+                                });
+                            </script>
+
+                            </div>
+        
+                            <!-- FPGA -->
+                            <div class="col e">
+                                <label for="hasfpga">FPGA</label>
+                                <select id="hasfpga" name="hasfpga" multiple size="1">
+                                    {%for i in range(0,num_fpgas)%}
+                                        <option value={{fpga_ids[i]}}>{{fpgas[i]}}</option>
+                                    {%endfor%}
+                                </select>
+                                <script>
+                                    let mySelectfpga = new vanillaSelectBox("#hasfpga", { 
+                                        "maxHeight": 200,
+                                        "placeHolder": "-- None --",
+                                        translations: {"items": "FPGAs"}
+                                    });
+                                </script>
+                            </div>
+
+                            <!-- Submit Button -->
+                            <div class="col f">
+                                <button type="submit" id="confirm_host" class="but_res">Confirm</button>
+                            </div>
+                        </div>            
+                    </div>
+                </form>
+            </div>
+        </div>
+    {% endif %}
 {% endblock %}

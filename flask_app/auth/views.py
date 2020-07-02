@@ -33,15 +33,17 @@ def login():
         password = request.form.get('password')
 
         try:
-            User.try_login(username, password)
+            super_user = User.try_login(username, password)
         except ldap.INVALID_CREDENTIALS:
             flash('Invalid username or password. Please try again.', 'danger')
             return render_template('layouts/login.html', form=form)
 
+        print("login sucessfull")
         user = User.query.filter_by(username=username).first()
 
+
         if not user:
-            user = User(username)
+            user = User(username, super_user)
             dbldap.session.add(user)
             dbldap.session.commit()
 

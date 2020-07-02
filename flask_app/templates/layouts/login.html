@@ -1,11 +1,6 @@
 {% extends 'layouts/base_login.html' %}
 
 {% block body %}
-    <!-- <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/multiselect.css')}}">
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
-
-    <script type=text/javascript src="{{url_for('static', filename='js/jquery.multiselect.min.js')}}"></script> -->
-
     <div class="container login-div">
         <form method="POST" action="{{ url_for('auth.login') }}" role="form">
             {{ form.csrf_token }}
@@ -14,60 +9,10 @@
             <button type="submit" class="btn btn-default">Submit</button>
         </form>
         <div class="container forgot-div">
-            <!-- <button type="button" class="cancelbtn">Cancel</button> -->
             <span id="forgot" class="forgot"></span>
             <script>
                 document.getElementById("forgot").innerHTML = `Forgot <a href="mailto: ${help_email}">password?</a>`
             </script>
         </div>
     </div>
-
-    <!-- <select id='testSelect1' multiple>
-        <option value='1'>Item 1</option>
-        <option value='2' selected>Item 2</option>
-        <option value='3' selected>Item 3</option>
-        <option value='4'>Item 4</option>
-        <option value='5'>Item 5</option>
-    </select>
-    
-    <div>
-        <button onclick="enable()">Enable</button>
-        <button onclick="disable()">Disable</button>
-    </div>
-    
-    <script>
-        document.multiselect('#testSelect1')
-            .setCheckBoxClick("checkboxAll", function (target, args) {
-                console.log("Checkbox 'Select All' was clicked and got value ", args.checked);
-            })
-            .setCheckBoxClick("1", function (target, args) {
-                console.log("Checkbox for item with value '1' was clicked and got value ", args.checked);
-            });
-
-        function enable() {
-            document.multiselect('#testSelect1').setIsEnabled(true);
-        }
-
-        function disable() {
-            document.multiselect('#testSelect1').setIsEnabled(false);
-        }
-    </script> -->
-
-
-    <!-- <div class="demo-example position-menu-within">
-        <label for="line-wrap-example">Line wrap example</label>
-        <select id="line-wrap-example" multiple>
-            <option>The final option…</option>
-            <option>Should wrap onto…</option>
-            <option>Multiple lines, to avoid expanding outside the grey wrapper</option>
-        </select>
-    </div>
-        
-    <script>
-            $('#line-wrap-example').multiSelect({
-                positionMenuWithin: $('.position-menu-within')
-            });
-    </script> -->
-
-<!-- </body> -->
 {% endblock %}

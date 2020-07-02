@@ -5,6 +5,9 @@ from wtforms.validators import InputRequired
 from flask_app.app import dbldap, app
 
 
+SUPER_GROUPS = ["admins", "trust admins", "editors"]
+
+
 # Possible values for ldapmodule_trace_level are 
 # 0 for no logging, 
 # 1 for only logging the method calls with arguments, 
@@ -17,9 +20,7 @@ ldapmodule_trace_file = sys.stderr
 ldap._trace_level = ldapmodule_trace_level
 
 # Complete path name of the file containing all trusted CA certs
-# CACERTFILE='/etc/ipa/ca.crt'
 CACERTFILE='/etc/ssl/certs/ca-bundle.crt'
-# CACERTFILE='/etc/ssl/certs/make-dummy-cert'
 
 def get_ldap_connection():
     conn = ldap.initialize(app.config['LDAP_PROVIDER_URL'], trace_level=ldapmodule_trace_level, trace_file=ldapmodule_trace_file)
@@ -43,14 +44,30 @@ def get_ldap_connection():
 class User(dbldap.Model):
     id = dbldap.Column(dbldap.Integer, primary_key=True)
     username = dbldap.Column(dbldap.String(100))
+    super_user = dbldap.Column(dbldap.Integer)
 
-    def __init__(self, username):
+    def __init__(self, username, super_user):
         self.username = username
+        if super_user:
+            self.super_user = 1
+        else:
+            self.super_user =0
 
     @staticmethod
     def try_login(username, password):
         conn = get_ldap_connection()
         conn.simple_bind_s('uid=%s,cn=users,cn=accounts,dc=inesc-id,dc=pt' % username, password)
+        
+        search_filter='(|(&(objectClass=*)(member=uid={},cn=users,cn=accounts,dc=inesc-id,dc=pt)))'.format(username)
+        results = conn.search_s("dc=inesc-id,dc=pt", ldap.SCOPE_SUBTREE, search_filter, ['cn',])
+        super_user = False
+        for group in results:
+            group_name = group[1]["cn"][0].decode("utf-8")
+            if group_name in SUPER_GROUPS:
+                super_user = True
+                break
+        return super_user
+
 
     def is_authenticated(self):
         return True

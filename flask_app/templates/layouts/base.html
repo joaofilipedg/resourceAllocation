@@ -3,12 +3,16 @@
 {% block navbar %}
     <nav class="topnav">
         {% if g.user %}
-        <a class="nav-m" href="{{ url_for('auth.home') }}">Home</a>
-        <a class="nav-m" href="{{ url_for('auth.reservations') }}">New Reservation</a>
-        <a class="nav-m" href="{{ url_for('auth.edit_hosts') }}">Hosts</a>
-        <a class="nav-m" href="{{ url_for('auth.edit_components') }}">Components</a>
-        <a class="logout" href="{{ url_for('auth.logout') }}" >Log Out</a>
-        <span>{{ g.user['username'] }}</span>
+            <a class="nav-m" href="{{ url_for('auth.home') }}">Home</a>
+            <a class="nav-m" href="{{ url_for('auth.reservations') }}">New Reservation</a>
+            <a class="nav-m" href="{{ url_for('auth.edit_hosts') }}">Hosts</a>
+            <a class="nav-m" href="{{ url_for('auth.edit_components') }}">Components</a>
+            <a class="logout" href="{{ url_for('auth.logout') }}" >Log Out</a>
+            {% if g.user['super_user'] == 1 %}
+                <span>{{ g.user['username'] }} (su)</span>
+            {% else %}
+                <span>{{ g.user['username'] }}</span>
+            {% endif %}
         {% endif %}
     </nav>
     <script>

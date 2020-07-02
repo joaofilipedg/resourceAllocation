@@ -1,10 +1,12 @@
 {% extends 'layouts/base.html' %}
 
 {% block header %}
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+    <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/vanillaSelectBox.css')}}">
     <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+    <script type="text/javascript" src="{{url_for('static', filename='js/vanillaSelectBox.js')}}"></script>
 {% endblock %}
 
 
@@ -25,22 +27,31 @@
                             <label class="cell-label">Host</label>
                             <select name="host" id="host">
                                 <option disabled selected value style="display:none"> -- select an option -- </option>
-                                {%for host in hosts%}
+                                {% for host in hosts %}
                                     <option value={{host}}>{{host}}</option>
-                                {%endfor%}
+                                {% endfor %}
                             </select>
-                            
                         </div>
-                        
+                        <script>
+                            var select_host = new vanillaSelectBox("#host", {
+                                "maxHeight": 300
+                            });
+                        </script>
+
                         <div class="col c">
                             <label class="cell-label">Reservation Type</label>
                             <select name="res_type" id="res_type">
                                 <option disabled selected value style="display:none"> -- select an option -- </option>
-                                {%for i in range(0,num_res_types)%}
+                                {% for i in range(0, num_res_types) %}
                                     <option value={{res_type_ids[i]}}>{{res_types[i]}}</option>
-                                {%endfor%}
+                                {% endfor %}
                             </select>
                         </div>
+                        <script>
+                            var select_restype = new vanillaSelectBox("#res_type", {
+                                "maxHeight": 300
+                            });
+                        </script>
                     </div>
 
                     <div class="row">
@@ -55,7 +66,7 @@
                                         maxSpan: {"days": 7},
                                         timePicker: true,
                                         timePicker24Hour: true,
-                                        timePickerIncrement: 1,
+                                        timePickerIncrement: 30,
                                         startDate: moment().startOf('hour'),
                                         endDate: moment().startOf('hour').add(32, 'hour'),
                                         locale: {
@@ -113,17 +124,21 @@
                         <div class="col header">Start Date</div>
                         <div class="col header">End Date</div>
                     </div>
-                    {%for res in curr_res%}
-                        <hr />
+                    {% for res in curr_res %}
+                        <hr/>
                         <div class="row">
-                            {%for i in range(0, 5)%}
+                            {% for i in range(0, 5) %}
                                 <div class="col">{{res[i]}}</div>
-                            {%endfor%}
+                            {% endfor %}
                             <div class="col">
-                                <button type="submit" class="cancelBtn" name="btncancel" value={{res[5]}}>Cancel</button>
+                                {% if current_user.super_user == 1 %}
+                                    <button type="submit" class="cancelBtn" name="btncancel" value={{res[5]}}>Cancel</button>
+                                {% elif current_user.username == res[1] %}
+                                    <button type="submit" class="cancelBtn" name="btncancel" value={{res[5]}}>Cancel</button>
+                                {% endif %}
                             </div>
                         </div>
-                    {%endfor%}
+                    {% endfor %}
                     <script>
                         // Need to get the reservation ID to tell the server which one shoulld be canceled
                         if (first_b) {
@@ -151,9 +166,9 @@
         <p><span class="div-title">List of currently free hosts</span></p>
         <div class="free-div">
             <ul class="l-free-hosts">
-                {%for host in free_hosts%}
+                {% for host in free_hosts %}
                     <li>{{ host }}</li>
-                {%endfor%}
+                {% endfor %}
             </ul>
         </div>
         <script>

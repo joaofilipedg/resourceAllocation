@@ -68,7 +68,7 @@ td.active.start-date.available, td.active.end-date.available {
     background-color: var(--color_10) !important;
 }
 td.in-range.available {
-    background-color: var(--color_10) !important;
+    background-color: var(--color_12) !important;
 }
 /* select.hourselect, select.minuteselect {
     background-image: url(../img/noisy_textures/sol_base2.png) !important;

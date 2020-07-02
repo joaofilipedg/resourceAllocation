@@ -2,8 +2,13 @@
 
 {% block body %}
     {% if current_user.is_authenticated %}
-        <h3>Hey {{ current_user.username }}!!</h3>
-
+        <div class="container">
+            {% if current_user.super_user == 1 %}
+                <h3 style="color: white;">Welcome {{ current_user.username }} (Admin)!!</h3>
+            {% else %}
+                <h3 style="color: white;">Welcome {{ current_user.username }}!!</h3>
+            {% endif %}
+        </div>
         <!-- LIST OF CURRENT RESERVATIONS -->
         <div class="container">
             <p><span class="div-title">List of your current reservations</span></p>
