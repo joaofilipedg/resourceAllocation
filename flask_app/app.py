@@ -14,7 +14,7 @@ app = Flask(__name__, static_folder="templates/static")
 
 class Config(object):
     SCHEDULER_JOBSTORES = {
-        'default': SQLAlchemyJobStore(url='sqlite:///sqlite_db/flask_scheduler_context.db')
+        'default': SQLAlchemyJobStore(url='sqlite:///sqlite/db/flask_scheduler_context.db')
     }
 
     SQLALCHEMY_DATABASE_URI = "sqlite:////tmp/test.db"

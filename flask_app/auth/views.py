@@ -315,9 +315,9 @@ def new_component():
     new_comp["brand"] = request.form["compbrand"]
     new_comp["gen"] = request.form["compgen"]
 
-    print(new_comp)
+    # print(new_comp)
 
-    # dbmain.insert_newComponent(new_comp)
+    dbmain.insert_newComponent(new_comp)
 
     return redirect(url_for('auth.edit_components'))
 
@@ -325,8 +325,21 @@ def new_component():
 @auth.route('/remove_component', methods=["POST"])
 @login_required
 def remove_component():
-    hostname = request.get_json().get("hostname", "")
-    print(hostname)
+    componentID = request.get_json().get("comp_id", "")
+    # print(componentID)
+    dbmain.del_component(componentID)
+    return "OK"
 
-    dbmain.del_host(hostname)
+# Update specific component (change name, manufacturer or brand) (POST only)
+@auth.route('/update_component', methods=["POST"])
+@login_required
+def update_component():
+    args = request.get_json()
+    componentID = args.get("id", "")
+    name = args.get("name", "")
+    brand = args.get("brand", "")
+    gen = args.get("gen", "")
+
+    dbmain.update_configComponent(componentID, name, brand, gen)
+
     return "OK"

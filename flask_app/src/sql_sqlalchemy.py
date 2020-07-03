@@ -2,6 +2,7 @@ from sqlalchemy import create_engine, Table, Column, Integer, String, MetaData, 
 from sqlalchemy_utils import create_view
 from flask_app.src.functions import read_csv
 import sys
+
 # Global Variables
 SQLITE          = 'sqlite'
 
@@ -15,7 +16,7 @@ RESERVATIONS    = 'reservations'
 
 # Views Names
 HOSTS_FULL      = "hosts_full"
-HOSTSCOMPS_FULL      = "hostscomps_full"
+HOSTSCOMPS_FULL = "hostscomps_full"
 
 
 ALL_TABLES      = [USERS, COMPONENTS, HOSTS, HOSTSCOMPONENTS, RESTYPES, RESERVATIONS]
@@ -30,8 +31,6 @@ CODE_FPGA       = 2
 COMPONENTS_SCHEMA= "{}(type, name, generation, manufacturer)".format(COMPONENTS)
 HOSTS_SCHEMA= "{}(hostname, ip, enabled)".format(HOSTS)
 RESERVATIONS_SCHEMA = "{}(user, host, reservation_type, begin_date, end_date)".format(RESERVATIONS)
-
-# HOSTS_FULL_SCHEMA = "hostname,ip,cpu,num_gpus,num_fpgas,enabled,is_free"
 
 INSERT_INTO = "INSERT INTO {} VALUES {};"
 
@@ -322,6 +321,10 @@ class ReservationsDB:
 
         return res
 
+    def insert_newComponent(self, new_comp):
+        new_comp_str = "({type}, \"{name}\", \"{gen}\", \"{manu}\")".format(type=new_comp["type"], name=new_comp["name"], gen=new_comp["gen"],manu=new_comp["brand"])
+        return self.insert(COMPONENTS_SCHEMA, new_comp_str)
+
     def insert_newUser(self, username):
         new_user_str = "(\"{user}\")".format(user=username)
 
@@ -344,9 +347,17 @@ class ReservationsDB:
             manual_removeReservation(res_id)
 
         # Before removing host, remove all host-components associated with it
-        self.del_entry(HOSTSCOMPS_FULL,  "hostname", "\""+hostname+"\"")
+        self.del_entry(HOSTSCOMPONENTS,  "hostname", "\""+hostname+"\"")
 
         return self.del_entry(HOSTS, "hostname", "\""+hostname+"\"")
+
+    # Remove component from database
+    def del_component(self, componentID):
+        
+        # Before removing component, remove all host-components associated with it
+        self.del_entry(HOSTSCOMPONENTS,  "componentID", componentID)
+
+        return self.del_entry(COMPONENTS, "componentID", componentID)
 
     def toggle_enableHost(self, hostname):
         query = "SELECT enabled FROM {} WHERE hostname=\"{}\";".format(HOSTS, hostname)
@@ -363,10 +374,14 @@ class ReservationsDB:
         # update IP
         update = "UPDATE {} SET ip = {} WHERE hostname=\"{}\"".format(HOSTS, ipaddr, hostname)
         res = self.execute_query(update)
-
+        if res == -1:
+            return res
+            
         # update CPU
         update = "UPDATE {} SET cpu = {} WHERE hostname=\"{}\"".format(HOSTS, cpu, hostname)
         res = self.execute_query(update)
+        if res == -1:
+            return res
 
         if optional_comps != {}:
             res = self.update_hostComponents(hostname, optional_comps)
@@ -390,7 +405,26 @@ class ReservationsDB:
 
         return True
 
-        
+    def update_configComponent(self, componentID, name, brand, gen):
+
+        # update name
+        update = "UPDATE {table} SET name = \"{name}\" WHERE componentID={id}".format(table=COMPONENTS, name=name, id=componentID)
+        res = self.execute_query(update)
+        if res == -1:
+            return res
+
+        # update brand
+        update = "UPDATE {table} SET manufacturer = \"{brand}\" WHERE componentID={id}".format(table=COMPONENTS, brand=brand, id=componentID)
+        res = self.execute_query(update)
+        if res == -1:
+            return res
+
+        # update gen
+        update = "UPDATE {table} SET generation = \"{gen}\" WHERE componentID={id}".format(table=COMPONENTS, gen=gen, id=componentID)
+        res = self.execute_query(update)
+
+        return res
+
     # QUERIES~
     # Get list of users in the DB
     def get_listUsers(self):
@@ -482,11 +516,8 @@ class ReservationsDB:
                 WHERE host=\"{host}\";".format(res=RESERVATIONS, col=column, host=hostname)
         return self.print_query(query=query)
 
-    # def get_listHostComponents(self, hostname):
-    #     query = "SELECT * FROM {hostscomponents} WHERE host=\"{host}\" ORDER BY hostname;".format(hostscomponents=HOSTSCOMPS_FULL, host=hosntame)
-    #     return self.print_query(query=query)
-
-dbmain = ReservationsDB(SQLITE, dbname="sqlite_db/res_alloc2.db")
+# CREATE/OPEN THE DATABASE
+dbmain = ReservationsDB(SQLITE, dbname="sqlite/db/res_alloc.db")
 
 # Function activated by the scheduler when END Time of a reservation activates
 def timed_removeReservation(*args):

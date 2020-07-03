@@ -30,6 +30,7 @@ def get_ldap_connection():
 
     # Force cert validation
     conn.set_option(ldap.OPT_X_TLS_REQUIRE_CERT,ldap.OPT_X_TLS_DEMAND)
+    
     # Set path name of file containing all trusted CA certificates
     conn.set_option(ldap.OPT_X_TLS_CACERTFILE,CACERTFILE)
     
@@ -58,6 +59,7 @@ class User(dbldap.Model):
         conn = get_ldap_connection()
         conn.simple_bind_s('uid=%s,cn=users,cn=accounts,dc=inesc-id,dc=pt' % username, password)
         
+        # get the groups of the user
         search_filter='(|(&(objectClass=*)(member=uid={},cn=users,cn=accounts,dc=inesc-id,dc=pt)))'.format(username)
         results = conn.search_s("dc=inesc-id,dc=pt", ldap.SCOPE_SUBTREE, search_filter, ['cn',])
         super_user = False

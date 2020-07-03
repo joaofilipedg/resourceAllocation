@@ -6,8 +6,10 @@
 <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
 
 <script type=text/javascript src="{{url_for('static', filename='js/vanillaSelectBox.js')}}"></script>
+{% if current_user.super_user == 1 %}
+<!-- ONLY IMPORT JAVASCRIPT IF USER IS ADMIN -->
 <script type=text/javascript src="{{url_for('static', filename='js/edit_db.js')}}"></script>
-
+{% endif %}
 <!-- <script type=text/javascript src="{{url_for('static', filename='js/jquery.multiselect.min.js')}}"></script> -->
 
 {% endblock %}
@@ -31,29 +33,31 @@
                     {% for cpu_i in range(0, num_cpus) %}
                         {% set cpu = cpus[cpu_i] %}
                         {% set cpu_id = cpu[0] %}
-                        <hr class="special-hr"/>
-                        <div class="row">
-                            <!-- LOOP ACROSS EACH ENTRY OF THE COMPONENT -->
-                            {% for j in range(2, 5) %}
-                                <div class="col" name={{ cpu_id ~ "_" ~ j }}>{{ cpu[j] }}</div>
-                            {% endfor %}
+                        {% if cpu_id != 0 %}
+                            <hr class="special-hr"/>
+                            <div class="row">
+                                <!-- LOOP ACROSS EACH ENTRY OF THE COMPONENT -->
+                                {% for j in range(2, 5) %}
+                                    <div class="col" name={{ cpu_id ~ "_" ~ j }}>{{ cpu[j] }}</div>
+                                {% endfor %}
 
-                            <!-- TODO: ADD A FIELD TO CHECK IF COMPONENT IS ALLOCATED TO ANY HOST -->
-                            <div class="col" > ... </div>
-                            
+                                <!-- TODO: ADD A FIELD TO CHECK IF COMPONENT IS ALLOCATED TO ANY HOST -->
+                                <div class="col" > ... </div>
+                                
 
-                            {% if current_user.super_user == 1 %}
-                            <!-- ONLY SHOW BUTTONS IF USER IS ADMIN -->
-                                <!-- Edit Host Button -->
-                                <div class="col">
-                                    <button type="submit" class="editBtn" name="btnedit" value={{cpu_id}}>Edit</button>
-                                </div>
-                                <!-- Remove Host Button-->
-                                <div class="col">
-                                    <button type="submit" class="removeBtn" name="btnremove" value={{cpu_id}}>Remove</button>
-                                </div>
-                            {% endif %}
-                        </div>
+                                {% if current_user.super_user == 1 %}
+                                <!-- ONLY SHOW BUTTONS IF USER IS ADMIN -->
+                                    <!-- Edit Host Button -->
+                                    <div class="col">
+                                        <button type="submit" class="editBtn" name="btnedit" value={{cpu_id}}>Edit</button>
+                                    </div>
+                                    <!-- Remove Host Button-->
+                                    <div class="col">
+                                        <button type="submit" class="removeBtn" name="btnremove" value={{cpu_id}}>Remove</button>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endif %}
                     {% endfor %}
                 </div>
             </form>

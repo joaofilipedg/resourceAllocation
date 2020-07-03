@@ -6,7 +6,10 @@
 <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
 
 <script type=text/javascript src="{{url_for('static', filename='js/vanillaSelectBox.js')}}"></script>
-<script type=text/javascript src="{{url_for('static', filename='js/edit_db.js')}}"></script>
+{% if current_user.super_user == 1 %}
+<!-- ONLY IMPORT JAVASCRIPT IF USER IS ADMIN -->
+    <script type=text/javascript src="{{url_for('static', filename='js/edit_db.js')}}"></script>
+{% endif %}
 
 <!-- <script type=text/javascript src="{{url_for('static', filename='js/jquery.multiselect.min.js')}}"></script> -->
 
