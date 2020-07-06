@@ -1,7 +1,9 @@
+import sys
+import logging
 from sqlalchemy import create_engine, Table, Column, Integer, String, MetaData, ForeignKey, select, func, join, alias, exists
 from sqlalchemy_utils import create_view
-from flask_app.src.functions import read_csv
-import sys
+
+from flask_app.src.global_stuff import read_csv, DEBUG_MODE
 
 # Global Variables
 SQLITE          = 'sqlite'
@@ -38,6 +40,17 @@ INSERT_INTO = "INSERT INTO {} VALUES {};"
 IDX_BEGIN_DATE = 4
 IDX_END_DATE = IDX_BEGIN_DATE+1
 IDX_RESTYPE = 3
+
+
+SQLITE_LEVEL_NUM = 25
+if not DEBUG_MODE:
+    # Create custom logging level for SQLITE accesses
+    logging.addLevelName(SQLITE_LEVEL_NUM, "SQLITE")
+    def infosql(self, message, *args, **kws):
+        if self.isEnabledFor(SQLITE_LEVEL_NUM):
+            self._log(SQLITE_LEVEL_NUM, message, args, **kws) 
+    logging.Logger.infosql = infosql
+
 
 # SQLALCHEMY DB
 class ReservationsDB:
@@ -142,6 +155,8 @@ class ReservationsDB:
             print("Tables created")
         except Exception as e:
             print("Error occurred during Table creation!")
+            if not DEBUG_MODE:
+                logging.critical("Error occurred during Table creation!", exc_info=True)
             print(e)
 
     # Function to create the views in the DB
@@ -259,27 +274,41 @@ class ReservationsDB:
                         self.insert(table, "({})".format(values))
 
     # Insert, Update, Delete
-    def execute_query(self, query=''):
+    def execute_query(self, query='', log_args={}):
         if query == '': 
             return -1
 
         print(query)
+
         with self.db_engine.connect() as connection:
             try:
+                if not DEBUG_MODE:
+                    if log_args != {}:
+                        # log the alteration into the log file
+                        log_args["app"].logger.infosql("username:'{user}', execute:'{query}'".format(user=log_args["user"], query=query))
+
                 result = connection.execute(query)
                 return result.lastrowid
+
             except Exception as e:
+                if not DEBUG_MODE:
+                    logging.critical("Something awful happened", exc_info=True)
                 print(e)
                 return -1
 
-    def print_query(self, table='', query='', num_cols=-1):
+    def print_query(self, table='', query='', num_cols=-1, log_args={}):
         query = query if query != '' else "SELECT * FROM '{}';".format(table)
         print(query)
         out = []
         with self.db_engine.connect() as connection:
             try:
+                if not DEBUG_MODE:
+                    if log_args != {}:
+                        log_args["app"].logger.infosql("username:'{user}', query:'{query}'".format(user=log_args["user"], query=query))
                 result = connection.execute(query)
             except Exception as e:
+                if not DEBUG_MODE:
+                    logging.critical("Something awful happened", exc_info=True)
                 print(e)
             else:
                 if (num_cols == 1) or (len(result.keys()) == 1):
@@ -294,153 +323,153 @@ class ReservationsDB:
                 result.close()
         return out
 
-    def insert(self, table, values):
+    def insert(self, table, values, log_args={}):
         # Insert Data
         query = "INSERT INTO {} VALUES {};".format(table, values)
-        return self.execute_query(query)
+        return self.execute_query(query, log_args=log_args)
 
-    def insert_newReservation(self, new_res):
+    def insert_newReservation(self, new_res, log_args={}):
         new_res_str = "(\"{user}\", \"{host}\", {restype}, \"{begin}\", \"{end}\")"\
             .format(user=new_res["user"], host=new_res["host"], restype=new_res["res_type"], begin=new_res["begin_date"], end=new_res["end_date"])
 
-        return self.insert(RESERVATIONS_SCHEMA, new_res_str)
+        return self.insert(RESERVATIONS_SCHEMA, new_res_str, log_args=log_args)
 
-    def insert_newHost(self, new_host):
+    def insert_newHost(self, new_host, log_args={}):
         # TODO: CHECK HOW TO SEND CPU
         hostname = new_host.pop("hostname")
         ipaddr = new_host.pop("ipaddr")
         cpuID = new_host.pop("cpu")
 
         new_host_str = "(\"{host}\", {ip}, 1, {cpu})".format(host=hostname, ip=ipaddr, cpu=cpuID)
-        res = self.insert(HOSTS, new_host_str)
+        res = self.insert(HOSTS, new_host_str, log_args=log_args)
 
         if "gpu" in new_host.keys() or "fpga" in new_host.keys():
             print("HERE:")
             print(new_host)
-            res = self.update_hostComponents(hostname, new_host)
+            res = self.update_hostComponents(hostname, new_host, log_args=log_args)
 
         return res
 
-    def insert_newComponent(self, new_comp):
+    def insert_newComponent(self, new_comp, log_args={}):
         new_comp_str = "({type}, \"{name}\", \"{gen}\", \"{manu}\")".format(type=new_comp["type"], name=new_comp["name"], gen=new_comp["gen"],manu=new_comp["brand"])
-        return self.insert(COMPONENTS_SCHEMA, new_comp_str)
+        return self.insert(COMPONENTS_SCHEMA, new_comp_str, log_args=log_args)
 
     def insert_newUser(self, username):
         new_user_str = "(\"{user}\")".format(user=username)
 
-        return self.insert(USERS, new_user_str)
+        return self.insert(USERS, new_user_str, log_args=log_args)
 
-    def del_entry(self, table, column, value, is_str=False):
+    def del_entry(self, table, column, value, is_str=False, log_args={}):
         if is_str == True:
             delete = "DELETE FROM {} WHERE {}=\"{}\";".format(table, column, value)
         else:
             delete = "DELETE FROM {} WHERE {}={};".format(table, column, value)
-        self.execute_query(delete)
+        self.execute_query(delete, log_args=log_args)
         return True
 
     # Remove host from database
-    def del_host(self, hostname):
+    def del_host(self, hostname, log_args={}):
         
         # Before removing host, remove all reservations associated with it
-        list_res = self.get_listReservationsHost(hostname, "reservationID")
+        list_res = self.get_listReservationsHost(hostname, "reservationID", log_args=log_args)
         for res_id in list_res:
             manual_removeReservation(res_id)
 
         # Before removing host, remove all host-components associated with it
-        self.del_entry(HOSTSCOMPONENTS,  "hostname", "\""+hostname+"\"")
+        self.del_entry(HOSTSCOMPONENTS,  "hostname", "\""+hostname+"\"", log_args=log_args)
 
-        return self.del_entry(HOSTS, "hostname", "\""+hostname+"\"")
+        return self.del_entry(HOSTS, "hostname", "\""+hostname+"\"", log_args=log_args)
 
     # Remove component from database
-    def del_component(self, componentID):
+    def del_component(self, componentID, log_args={}):
         
         # Before removing component, remove all host-components associated with it
-        self.del_entry(HOSTSCOMPONENTS,  "componentID", componentID)
+        self.del_entry(HOSTSCOMPONENTS,  "componentID", componentID, log_args=log_args)
 
-        return self.del_entry(COMPONENTS, "componentID", componentID)
+        return self.del_entry(COMPONENTS, "componentID", componentID, log_args=log_args)
 
-    def toggle_enableHost(self, hostname):
+    def toggle_enableHost(self, hostname, log_args={}):
         query = "SELECT enabled FROM {} WHERE hostname=\"{}\";".format(HOSTS, hostname)
-        enabled = self.print_query(query=query)[0]
+        enabled = self.print_query(query=query, log_args=log_args)[0]
         print(enabled)
         enabled = 1 - enabled
         update = "UPDATE {} SET enabled = {} WHERE hostname=\"{}\"".format(HOSTS, enabled, hostname)
-        self.execute_query(update)
+        self.execute_query(update, log_args=log_args)
         return True
 
-    def update_configHost(self, hostname, ipaddr, cpu, optional_comps):
+    def update_configHost(self, hostname, ipaddr, cpu, optional_comps, log_args={}):
         # TODO: CHECK THIS FUNCTION
 
         # update IP
         update = "UPDATE {} SET ip = {} WHERE hostname=\"{}\"".format(HOSTS, ipaddr, hostname)
-        res = self.execute_query(update)
+        res = self.execute_query(update, log_args=log_args)
         if res == -1:
             return res
             
         # update CPU
         update = "UPDATE {} SET cpu = {} WHERE hostname=\"{}\"".format(HOSTS, cpu, hostname)
-        res = self.execute_query(update)
+        res = self.execute_query(update, log_args=log_args)
         if res == -1:
             return res
 
         if optional_comps != {}:
-            res = self.update_hostComponents(hostname, optional_comps)
+            res = self.update_hostComponents(hostname, optional_comps, log_args=log_args)
             
         return res
 
-    def update_hostComponents(self, hostname, components):
+    def update_hostComponents(self, hostname, components, log_args={}):
         # TODO: Confirm this function
 
         # first delete all entries of the host in the HOSTSCOMPONENTS table
-        self.del_entry(HOSTSCOMPONENTS, "hostname", hostname, True)
+        self.del_entry(HOSTSCOMPONENTS, "hostname", hostname, True, log_args=log_args)
 
         # now add the new components
         if "gpu" in components.keys():
             for gpu in components["gpu"]:
-                self.insert(HOSTSCOMPONENTS, "(\"{hostname}\", {compID})".format(hostname=hostname, compID=gpu))
+                self.insert(HOSTSCOMPONENTS, "(\"{hostname}\", {compID})".format(hostname=hostname, compID=gpu), log_args=log_args)
 
         if "fpga" in components.keys():
             for fpga in components["fpga"]:
-                self.insert(HOSTSCOMPONENTS, "(\"{hostname}\", {compID})".format(hostname=hostname, compID=fpga))
+                self.insert(HOSTSCOMPONENTS, "(\"{hostname}\", {compID})".format(hostname=hostname, compID=fpga), log_args=log_args)
 
         return True
 
-    def update_configComponent(self, componentID, name, brand, gen):
+    def update_configComponent(self, componentID, name, brand, gen, log_args={}):
 
         # update name
         update = "UPDATE {table} SET name = \"{name}\" WHERE componentID={id}".format(table=COMPONENTS, name=name, id=componentID)
-        res = self.execute_query(update)
+        res = self.execute_query(update, log_args=log_args)
         if res == -1:
             return res
 
         # update brand
         update = "UPDATE {table} SET manufacturer = \"{brand}\" WHERE componentID={id}".format(table=COMPONENTS, brand=brand, id=componentID)
-        res = self.execute_query(update)
+        res = self.execute_query(update, log_args=log_args)
         if res == -1:
             return res
 
         # update gen
         update = "UPDATE {table} SET generation = \"{gen}\" WHERE componentID={id}".format(table=COMPONENTS, gen=gen, id=componentID)
-        res = self.execute_query(update)
+        res = self.execute_query(update, log_args=log_args)
 
         return res
 
     # QUERIES~
     # Get list of users in the DB
-    def get_listUsers(self):
+    def get_listUsers(self, log_args={}):
         query = "SELECT username FROM {users} ORDER BY username;".format(users=USERS)
-        return self.print_query(query=query)
+        return self.print_query(query=query, log_args=log_args)
     
     # Get list of enabled hosts
-    def get_listEnabledHosts(self):
+    def get_listEnabledHosts(self, log_args={}):
         query = "SELECT hostname FROM {hosts} WHERE enabled=1 ORDER BY hostname;".format(hosts=HOSTS)
-        return self.print_query(query=query)
+        return self.print_query(query=query, log_args=log_args)
 
     # Get list of different types of reservations
-    def get_listResTypes(self):
+    def get_listResTypes(self, log_args={}):
         query = "SELECT name, restypeID, description FROM {restypes};".format(restypes=RESTYPES)
         
-        result_query = self.print_query(query=query)
+        result_query = self.print_query(query=query, log_args=log_args)
 
         list_restypes = [i[0] for i in result_query]
         list_restypes_ids = [i[1] for i in result_query]
@@ -453,30 +482,30 @@ class ReservationsDB:
         else:
             query = "SELECT componentID, name FROM {components} WHERE type={type} ORDER BY name".format(components=COMPONENTS, type=type_code)
 
-        result_query = self.print_query(query=query)
+        result_query = self.print_query(query=query, log_args=log_args)
 
         list_ids = [i[0] for i in result_query]
         list_names = [i[1] for i in result_query]
         return list_names, list_ids
 
-    def get_listHostsComponents(self):
+    def get_listHostsComponents(self, log_args={}):
         query = "SELECT * FROM {hostscomponents} ORDER BY hostname;".format(hostscomponents=HOSTSCOMPS_FULL)
-        return self.print_query(query=query)
+        return self.print_query(query=query, log_args=log_args)
         
     # Get full list host information
-    def get_fullListHosts(self):
+    def get_fullListHosts(self, log_args={}):
         query = "SELECT * FROM {hosts} ORDER BY hostname;".format(hosts=HOSTS_FULL)
-        return self.print_query(query=query)
+        return self.print_query(query=query, log_args=log_args)
 
-    def get_fullListComponents(self, type_code=""):
+    def get_fullListComponents(self, type_code="", log_args={}):
         if type_code == "":
             query = "SELECT * FROM {components} ORDER BY name".format(components=COMPONENTS)
         else:
             query = "SELECT * FROM {components} WHERE type={type} ORDER BY name".format(components=COMPONENTS, type=type_code)
-        return self.print_query(query=query)
+        return self.print_query(query=query, log_args=log_args)
 
     # Get list of current free hosts (that are enabled)
-    def get_listFreeHosts(self):
+    def get_listFreeHosts(self, log_args={}):
         query = "SELECT \
                     {hosts}.hostname, \
                     COUNT(res.host) as num_reservations \
@@ -487,61 +516,76 @@ class ReservationsDB:
                 GROUP BY {hosts}.hostname \
                 HAVING num_reservations == 0 \
                 ORDER BY {hosts}.hostname;".format(res=RESERVATIONS, hosts=HOSTS)
-        return self.print_query(query=query, num_cols=1)
+        return self.print_query(query=query, num_cols=1, log_args=log_args)
    
     # Get list of all current scheduled reservations 
-    def get_listCurrentReservations(self, username=""):
-        where_str = ""
+    def get_listCurrentReservations(self, username="", log_args={}):
+        str_where = ""
         if not username=="":
-            where_str = "WHERE {users}.username=\"{username}\"".format(users=USERS, username=username)
-        query = "SELECT \
-                    {hosts}.hostname, \
-                    {users}.username, \
-                    res_t.name, \
-                    res.begin_date, \
-                    res.end_date, \
-                    res.reservationID \
-                FROM \
-                    {res} as res \
-                    LEFT JOIN {hosts} ON {hosts}.hostname = res.host \
-                    LEFT JOIN {users} ON {users}.username = res.user \
-                    LEFT JOIN {restypes} as res_t ON res_t.restypeID = res.reservation_type \
-                {where} \
-                ORDER BY 1,2;".format(res=RESERVATIONS, hosts=HOSTS, users=USERS, restypes=RESTYPES, where=where_str)
-        return self.print_query(query=query)
+            str_where = "WHERE {users}.username=\"{username}\"".format(users=USERS, username=username)
+        # query = "SELECT \
+        #             {hosts}.hostname, \
+        #             {users}.username, \
+        #             res_t.name, \
+        #             res.begin_date, \
+        #             res.end_date, \
+        #             res.reservationID \
+        #         FROM \
+        #             {res} as res \
+        #             LEFT JOIN {hosts} ON {hosts}.hostname = res.host \
+        #             LEFT JOIN {users} ON {users}.username = res.user \
+        #             LEFT JOIN {restypes} as res_t ON res_t.restypeID = res.reservation_type \
+        #         {where} \
+        #         ORDER BY 1,2;".format(res=RESERVATIONS, hosts=HOSTS, users=USERS, restypes=RESTYPES, where=str_where)
+        query = "SELECT {hosts}.hostname, {users}.username, res_t.name, res.begin_date, res.end_date, res.reservationID \
+                FROM {res} as res LEFT JOIN {hosts} ON {hosts}.hostname = res.host LEFT JOIN {users} ON {users}.username = res.user LEFT JOIN {restypes} as res_t ON res_t.restypeID = res.reservation_type \
+                {where} ORDER BY 1,2;".format(res=RESERVATIONS, hosts=HOSTS, users=USERS, restypes=RESTYPES, where=str_where)
+        return self.print_query(query=query, log_args=log_args)
 
-    def get_listReservationsHost(self, hostname, column):
+    def get_listReservationsHost(self, hostname, column, log_args={}):
         query = "SELECT {col} \
                 FROM {res} \
                 WHERE host=\"{host}\";".format(res=RESERVATIONS, col=column, host=hostname)
-        return self.print_query(query=query)
+        return self.print_query(query=query, log_args=log_args)
 
 # CREATE/OPEN THE DATABASE
 dbmain = ReservationsDB(SQLITE, dbname="sqlite/db/res_alloc.db")
 
 # Function activated by the scheduler when END Time of a reservation activates
 def timed_removeReservation(*args):
-    from flask_app.app import dbmain
     res_id = args[0]
-    
     print("Time's up! Finishing reservation with id {}".format(res_id))
+
+    if not DEBUG_MODE:
+        try:
+            # New entry in the log file (this is done differently because it is from outside the app context)
+            logger = logging.getLogger("app.sqlite")
+            logger.infosql("username:'{user}', execute:'DELETE FROM {table} WHERE res_id={res_id}'".format(user="auto_timer", table=RESERVATIONS, res_id=res_id))
+        except:
+            logging.critical("Something awful happened", exc_info=True)
+            return -1        
+
     return dbmain.del_entry(RESERVATIONS, "reservationID", res_id)
 
 # Function activated when user manually cancels reservation    
-def manual_removeReservation(res_id):
-    from flask_app.app import dbmain, scheduler
+def manual_removeReservation(res_id, log_args):
+    from flask_app.app import scheduler
 
-    # must also remove scheduled remove action from the scheduler
-    scheduler.remove_job(id='j'+str(res_id))
+    try:
+        # must also remove scheduled remove action from the scheduler
+        scheduler.remove_job(id='j'+str(res_id))
+    except Exception as e:
+        if not DEBUG_MODE:
+            logging.critical("Something awful happened", exc_info=True)
+        print(e)
+        return -1
     
-    return dbmain.del_entry(RESERVATIONS, "reservationID", res_id)
+    return dbmain.del_entry(RESERVATIONS, "reservationID", res_id, log_args=log_args)
 
 # Function to check if a new reservation conflicts with any of the previous ones
 # (Return True if there is a conflict)
-def check_conflictsNewReservation(new_res):
-    from flask_app.app import dbmain
-    
-    list_res = dbmain.get_listReservationsHost(new_res["host"], "*")
+def check_conflictsNewReservation(new_res, log_args):    
+    list_res = dbmain.get_listReservationsHost(new_res["host"], "*", log_args=log_args)
     
 
     for res in list_res:

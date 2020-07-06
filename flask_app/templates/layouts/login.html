@@ -2,7 +2,7 @@
 
 {% block body %}
     <div class="container login-div">
-        <form method="POST" action="{{ url_for('auth.login') }}" role="form">
+        <form method="POST" action="{{ url_for('app_routes.login') }}" role="form">
             {{ form.csrf_token }}
             <div class="form-group">{{ form.username.label }}: {{ form.username() }}</div>
             <div class="form-group">{{ form.password.label }}: {{ form.password() }}</div>
