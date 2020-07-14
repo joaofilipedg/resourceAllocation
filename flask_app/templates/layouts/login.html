@@ -2,16 +2,6 @@
 
 {% block body %}
     <div class="container login-div">
-        <!-- <form method="POST" action="{{ url_for('app_routes.login') }}" role="form"> -->
-        <!-- <form action="{{ url_for('app_routes.login', _external=True, _scheme='https') }}" method="post" novalidate> -->
-                <!-- {{ form.csrf_token }} -->
-            <!-- {{ form.hidden_tag() }} -->
-            <!-- <div class="form-group">{{ form.username.label }}: {{ form.username() }}</div> -->
-            <!-- <div class="form-group">{{ form.password.label }}: {{ form.password() }}</div> -->
-            <!-- <button type="submit" class="btn btn-default">Submit</button> -->
-            <!-- {{ form.submit() }} -->
-        <!-- </form> -->
-
         <h1>Sign In</h1>
         <form action="" method="post" novalidate>
             {{ form.hidden_tag() }}
@@ -36,7 +26,7 @@
         <div class="container forgot-div">
             <span id="forgot" class="forgot"></span>
             <script>
-                document.getElementById("forgot").innerHTML = `Contact <a href="mailto: ${help_email}">support?</a>`
+                document.getElementById("forgot").innerHTML = `<a href="mailto: ${help_email}">Contact support?</a>`
             </script>
         </div>
     </div>

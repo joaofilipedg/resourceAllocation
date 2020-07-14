@@ -1,4 +1,5 @@
 body {
+    font-family: Verdana, Arial, Helvetica;
     background-color: var(--bg);
     max-width: 800px;
     margin: 0 auto;

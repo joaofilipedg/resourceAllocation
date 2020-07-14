@@ -99,6 +99,7 @@ li.disabled{
 
 /* ADDED */
 .smaller.vsb-main button {
+	text-align: center;
 	width: 95%;
     padding: 0 0 0 5px;
     margin: 0px;

@@ -10,33 +10,50 @@
 
 <section class="content">
     <header>
+        <!-- Code added to avoid FOUC -->
+        <style type="text/css">
+            .js #fouc {
+                display: none;
+            }
+            </style>
+        <script type="text/javascript">
+            document.documentElement.className = "js";
+        </script>
+
         {% block header %}{% endblock %}
     </header>
 
     <body>
-        <!-- INESC IMAGE AND WELCOME PAGE -->
-        <div class="imgcontainer">
-            <img src="{{url_for('static', filename='img/INESCID_logo.png')}}" alt="Avatar" class="avatar">
+        <div id="fouc">
+            <!-- INESC IMAGE AND WELCOME PAGE -->
+            <div class="imgcontainer">
+                <a href="{{ url_for('app_routes.home', _external=True, _scheme='https') }}"><img src="{{url_for('static', filename='img/INESCID_logo.png')}}" alt="Avatar" class="avatar"></a>
+            </div>
+            
+            <h1><span class="welcome">HPCAS Resource Allocation Page</span></h1>
+            
+            
+            {% block navbar %} {% endblock %}
+            
+            {% block flashes %}
+                {% with messages = get_flashed_messages() %}
+                    {% if messages %}
+                        <ul class=flashes>
+                            {% for message in messages %}
+                                <li>{{ message }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                {% endwith %}
+            {% endblock %}
+            
+            {% block body %} {% endblock %}
+            
         </div>
-        
-        <h1><span class="welcome">HPCAS Resource Allocation Page</span></h1>
-
-
-        {% block navbar %} {% endblock %}
-        
-        {% block flashes %}
-            {% with messages = get_flashed_messages() %}
-                {% if messages %}
-                <ul class=flashes>
-                    {% for message in messages %}
-                    <li>{{ message }}</li>
-                    {% endfor %}
-                </ul>
-                {% endif %}
-            {% endwith %}
-        {% endblock %}
-        
-        {% block body %} {% endblock %}
+        <!-- Code added to avoid FOUC -->
+        <script type="text/javascript">
+            document.getElementById("fouc").style.display = "block";
+        </script>
     </body>
     <footer>
         <p class="copy">&copy; João Guerreiro 2020</p>

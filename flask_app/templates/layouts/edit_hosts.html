@@ -1,22 +1,22 @@
 {% extends 'layouts/base.html' %}
 
 {% block header %}
-<!-- <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/multiselect.css')}}"> -->
-<link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/vanillaSelectBox.css')}}">
-<script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/vanillaSelectBox.css')}}">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
 
-<script type=text/javascript src="{{url_for('static', filename='js/vanillaSelectBox.js')}}"></script>
-{% if current_user.super_user == 1 %}
-<!-- ONLY IMPORT JAVASCRIPT IF USER IS ADMIN -->
+    <script type=text/javascript src="{{url_for('static', filename='js/vanillaSelectBox.js')}}"></script>
     <script type=text/javascript src="{{url_for('static', filename='js/edit_db.js')}}"></script>
-{% endif %}
 
-<!-- <script type=text/javascript src="{{url_for('static', filename='js/jquery.multiselect.min.js')}}"></script> -->
-
+    {% if current_user.super_user == 1 %}
+    <!-- ONLY IMPORT JAVASCRIPT IF USER IS ADMIN -->
+        <script type=text/javascript src="{{url_for('static', filename='js/edit_db_admin.js')}}"></script>
+    {% endif %}
 {% endblock %}
 
 
 {% block body %}
+    <span id="test_stuff"></span>
+
     <!-- HOSTS TABLE -->
     <div class="container">
         <p><span class="div-title">List of Hosts</span></p>
@@ -36,61 +36,82 @@
                     {% for host in hosts %}
                     <hr class="special-hr"/>
                     <div class="row">
-                        {% set hostname = host[0] %}
-                        {% set host_cpu = host[2] | int %}
-                        {% set host_num_gpus = host[3] | int %}
-                        {% set host_num_fpgas = host[4] | int %}
-                        {% set host_gpus = all_hostgpus[hostname] %}
-                        {% set host_fpgas = all_hostfpgas[hostname] %}
+                        {% set hostname = host[0] %} <!--hostname-->
+                        {% set host_cpu = host[2] | int %} <!--cpuID of the host-->
+                        {% set host_num_gpus = host[3] | int %} <!--number of gpus in the host-->
+                        {% set host_num_fpgas = host[4] | int %} <!--number of fpgas in the host-->
+                        {% set host_gpus = all_hostgpus[hostname] %} <!--list of gpuIDs in the host-->
+                        {% set host_fpgas = all_hostfpgas[hostname] %} <!--list of fpgaIDs in the host-->
 
                         <!-- LOOP ACROSS EACH ENTRY OF THE HOST -->
                         {% for field_i in range(0, 5) %}
 
                             {% if field_i == 2 %}
                                 <!-- CPU -->
+                                
+                                {% if current_user.super_user == 1 %}
+                                    <div class="tooltip">
+                                        <select class="smaller" id={{ hostname ~ "_cpu"}} name={{ hostname ~ "_cpu" }} size="1">
+                                            <!-- Confirm is the Host has a CPU allocated. If it's the default put placeholder in the select (IMPORTANT: SQLITE Autoincrement starts at 1)-->
+                                            {% if host_cpu == 0 %}
+                                                <option disabled selected value style="display:none"> -- Select -- </option>
+                                            {% endif %}
 
-                                <select class="smaller" id={{ hostname ~ "_cpu"}} name={{ hostname ~ "_cpu" }} size="1">
-                                    <!-- Confirm is the Host has a CPU allocated. If it's the default put placeholder in the select (IMPORTANT: SQLITE Autoincrement starts at 1)-->
-                                    {% if host_cpu == 0 %}
-                                        <option disabled selected value style="display:none"> -- Select -- </option>
-                                    {% endif %}
+                                            <!-- Fill the select with the available CPUs -->
+                                            {% for cpu_j in range(0,num_cpus) %}
+                                                <!-- If the CPU is the currently allocated for that Host, make it the selected value -->
+                                                {% if cpu_ids[cpu_j] == host_cpu %}
+                                                    <option selected value={{cpu_ids[cpu_j]}}>{{cpus[cpu_j]}}</option>
+                                                {% else %}
+                                                    <option value={{cpu_ids[cpu_j]}}>{{cpus[cpu_j]}}</option>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </select>
+                                        <span class="tooltiptext" id={{ hostname ~ "_cpu_tooltiptext"}}></span>
+                                    </div>
+                                {% else %}
+                                    <div class="col" id={{ hostname ~ "_cpu"}} name={{ hostname ~ "_cpu" }} style="overflow: hidden;text-overflow: ellipsis;display: block;"></div>
+                                {% endif %}
 
-                                    <!-- Fill the select with the available CPUs -->
-                                    {% for cpu_j in range(0,num_cpus) %}
-                                        <!-- If the CPU is the currently allocated for that Host, make it the selected value -->
-                                        {% if cpu_ids[cpu_j] == host_cpu %}
-                                            <option selected value={{cpu_ids[cpu_j]}}>{{cpus[cpu_j]}}</option>
-                                        {% else %}
-                                            <option value={{cpu_ids[cpu_j]}}>{{cpus[cpu_j]}}</option>
-                                        {% endif %}
-                                    {% endfor %}
-                                </select>     
                             {% elif field_i == 3 %}
                                 <!-- GPU  -->
 
-                                <select class="smaller" id={{ hostname ~ "_gpu"}} name={{ hostname ~ "_gpu" }} multiple size="1">
-                                    {% for gpu_j in range(0,num_gpus) %}
-                                        {% if gpu_ids[gpu_j] in host_gpus %}
-                                            <option selected value={{gpu_ids[gpu_j]}}>{{gpus[gpu_j]}}</option>
-                                        {% else %}
-                                            <option value={{gpu_ids[gpu_j]}}>{{gpus[gpu_j]}}</option>
-                                        {% endif %}
-                                    {% endfor %}
-                                </select>
+                                {% if current_user.super_user == 1 %}
+                                    <div class="tooltip">
+                                        <select class="smaller" id={{ hostname ~ "_gpu"}} name={{ hostname ~ "_gpu" }} multiple size="1">
+                                            {% for gpu_j in range(0,num_gpus) %}
+                                                {% if gpu_ids[gpu_j] in host_gpus %}
+                                                    <option selected value={{gpu_ids[gpu_j]}}>{{gpus[gpu_j]}}</option>
+                                                {% else %}
+                                                    <option value={{gpu_ids[gpu_j]}}>{{gpus[gpu_j]}}</option>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </select>
+                                        <span class="tooltiptext" id={{ hostname ~ "_gpu_tooltiptext"}}></span>
+                                    </div>
+                                {% else %}
+                                    <div class="col" id={{ hostname ~ "_gpu"}} name={{ hostname ~ "_gpu" }} style="overflow: hidden;text-overflow: ellipsis;display: block;"></div>
+                                {% endif %}
 
                             {% elif field_i == 4 %}
                                 <!-- FPGA -->
-    
-                                <select class="smaller" id={{ hostname ~ "_fpga"}} name={{ hostname ~ "_fpga" }} multiple size="1">
-                                    {% for fpga_j in range(0,num_fpgas) %}
-                                        {% if fpga_ids[fpga_j] in host_fpgas %}
-                                            <option selected value={{fpga_ids[fpga_j]}}>{{fpgas[fpga_j]}}</option>
-                                        {% else %}
-                                            <option value={{fpga_ids[fpga_j]}}>{{fpgas[fpga_j]}}</option>
-                                        {% endif %}
-                                    {% endfor %}
-                                </select>
 
+                                {% if current_user.super_user == 1 %}
+                                    <div class="tooltip">
+                                        <select class="smaller" id={{ hostname ~ "_fpga"}} name={{ hostname ~ "_fpga" }} multiple size="1">
+                                            {% for fpga_j in range(0,num_fpgas) %}
+                                            {% if fpga_ids[fpga_j] in host_fpgas %}
+                                            <option selected value={{fpga_ids[fpga_j]}}>{{fpgas[fpga_j]}}</option>
+                                            {% else %}
+                                            <option value={{fpga_ids[fpga_j]}}>{{fpgas[fpga_j]}}</option>
+                                            {% endif %}
+                                            {% endfor %}
+                                        </select>
+                                        <span class="tooltiptext" id={{ hostname ~ "_fpga_tooltiptext"}}></span>
+                                    </div>
+                                {% else %}
+                                    <div class="col" id={{ hostname ~ "_fpga"}} name={{ hostname ~ "_fpga" }} style="overflow: hidden;text-overflow: ellipsis;display: block;"></div>                                    
+                                {% endif %}
                             {% else %}
                                 <div class="col" name={{ hostname ~ "_" ~ field_i }}>{{ host[field_i] }}</div>
                             {% endif %}
@@ -124,60 +145,33 @@
                     </div>
                     {% endfor %}
 
-                    <!-- script for each host selects -->
-                    <script>
-                        var hosts = {{ hosts| safe }};
-                        for (let index = 0; index < hosts.length; index++) {
-                            var host = hosts[index];
-                            var hostname = host[0];
-
-                            // SELECT CPU
-                            var select_cpu_aux = new vanillaSelectBox(`#${hostname}_cpu`, {
-                                "maxHeight": 200
-                                // "placeHolder": "--None--"
-                            });
-
-                            // added to make the select boxes smaller only here 
-                            var div_cpu = document.getElementById("btn-group-" + `#${hostname}_cpu`);
-                            div_cpu.classList.add("smaller");
-
-                            select_cpu_aux.disable();
-                            editdb_list_selects_cpu[hostname]=select_cpu_aux;
-
-                            // SELECT GPU
-                            var select_gpu_aux = new vanillaSelectBox(`#${hostname}_gpu`, {
-                                "maxHeight": 200,
-                                "placeHolder": "-- None --",
-                                translations: { "items": "GPUs" }
-                            });
-
-                            
-                            // added to make the select boxes smaller only here 
-                            var div_gpu = document.getElementById("btn-group-" + `#${hostname}_gpu`);
-                            div_gpu.classList.add("smaller");
-
-                            select_gpu_aux.disable();
-                            editdb_list_selects_gpu[hostname] = select_gpu_aux;
-
-                            // SELECT FPGA
-                            var select_fpga_aux = new vanillaSelectBox(`#${hostname}_fpga`, {
-                                "maxHeight": 200,
-                                "placeHolder": "-- None --",
-                                translations: { "items": "FPGAs" }
-                            });
-
-                            
-                            // added to make the select boxes smaller only here 
-                            var div_fpga = document.getElementById("btn-group-" + `#${hostname}_fpga`);
-                            div_fpga.classList.add("smaller");
-
-                            select_fpga_aux.disable();
-                            editdb_list_selects_fpga[hostname] = select_fpga_aux;
-                        }
-                    </script>
-
                     {% if current_user.super_user == 1 %}
-                    <!-- ONLY SHOW BUTTONS IF USER IS ADMIN -->
+                    <!-- IF USER IS ADMIN -->
+
+                        <!-- script for each host selects -->
+                        <script>
+                            var hosts = {{ hosts| safe }};
+                            var cpus = {{ cpus| safe }};
+                            var cpu_ids = {{ cpu_ids| safe }};
+                            var gpus = {{ gpus| safe }};
+                            var gpu_ids = {{ gpu_ids| safe }};
+                            var fpgas = {{ fpgas| safe }};
+                            var fpga_ids = {{ fpga_ids| safe }};
+
+                            for (let index = 0; index < hosts.length; index++) {
+                                var host = hosts[index];
+                                var hostname = host[0];
+                                
+                                createCustomSelects(hostname, "cpu", "", cpus, cpu_ids, editdb_list_selects_cpu);
+                                
+                                // SELECT GPU
+                                createCustomSelects(hostname, "gpu", "GPUs", gpus, gpu_ids, editdb_list_selects_gpu);
+                                
+                                // SELECT FPGA
+                                createCustomSelects(hostname, "fpga", "FPGAs", fpgas, fpga_ids, editdb_list_selects_fpga);
+                            }
+                        </script>
+
                         <!-- Script for the buttons of each host -->
                         <script>
                             if (editdb_first_h) {
@@ -222,11 +216,41 @@
                                 }
                             }
                         </script>
+                    {% else %}
+                        <!-- IF USER IS NOT ADMIN -->
+                        <script>
+                            var hosts = {{ hosts| safe }};
+                            var cpus = {{ cpus| safe }};
+                            var cpu_ids = {{ cpu_ids| safe }};
+                            var gpus = {{ gpus| safe }};
+                            var gpu_ids = {{ gpu_ids| safe }};
+                            var fpgas = {{ fpgas| safe }};
+                            var fpga_ids = {{ fpga_ids| safe }};
+                            var all_hostgpus = {{ all_hostgpus| safe }};
+                            var all_hostfpgas = {{ all_hostfpgas| safe }};
+
+
+                            for (let index = 0; index < hosts.length; index++) {
+                                var host = hosts[index];
+                                var hostname = host[0];
+                            
+                                var host_cpu = parseInt(host[2]);
+                                var host_gpus = all_hostgpus[hostname];
+                                var host_fpgas = all_hostfpgas[hostname];
+
+                                fillSpanComponents(hostname, "cpu", host_cpu, cpus, cpu_ids);
+                                fillSpanComponents(hostname, "gpu", host_gpus, gpus, gpu_ids);
+                                fillSpanComponents(hostname, "fpga", host_fpgas, fpgas, fpga_ids);
+                            }
+
+                        </script>
                     {% endif %}
                 </div>
             </form>
         </div>
     </div>
+
+    
 
     {% if current_user.super_user == 1 %}
     <!-- ONLY ALLOW ADDING NEW HOST IF USER IS ADMIN -->
