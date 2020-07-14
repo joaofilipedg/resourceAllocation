@@ -1,9 +1,9 @@
 import ldap, sys
 from flask_wtf import FlaskForm
-from wtforms import TextField, PasswordField
-from wtforms.validators import InputRequired
-from flask_app.app import dbldap, app
-
+from wtforms import StringField, PasswordField, SubmitField, BooleanField
+from wtforms.validators import DataRequired
+from flask_app.app import dbldap, app, login_manager
+# from wtforms import StringField, SubmitField, IntegerField
 
 SUPER_GROUPS = ["admins", "trust admins", "editors"]
 
@@ -83,7 +83,21 @@ class User(dbldap.Model):
     def get_id(self):
         return str(self.id)
 
+@login_manager.user_loader
+def load_user(id):
+    return User.query.get(int(id))
 
 class LoginForm(FlaskForm):
-    username = TextField('Username', [InputRequired()])
-    password = PasswordField('Password', [InputRequired()])
+    # username = TextField('Username', [InputRequired()])
+    # password = PasswordField('Password', [InputRequired()])
+    # submit = SubmitField("Submit")
+
+    username = StringField('Username', validators=[DataRequired()])
+    password = PasswordField('Password', validators=[DataRequired()])
+    # remember_me = BooleanField('Remember Me')
+    submit = SubmitField('Sign In')
+
+# class IdentityForm(FlaskForm):
+#     age = IntegerField("Type your age", validators=[Optional()])
+#     name = StringField("Type your name*", validators=[DataRequired()])
+#     submit = SubmitField("Submit")

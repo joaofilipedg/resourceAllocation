@@ -1,5 +1,5 @@
 from flask import render_template, request, redirect, url_for, current_app
-from flask_login import login_required
+from flask_login import current_user, login_required
 from datetime import datetime
 
 from flask_app.src.sql_sqlalchemy import dbmain, CODE_CPU, CODE_GPU, CODE_FPGA
@@ -43,7 +43,7 @@ def new_component():
 
     dbmain.insert_newComponent(new_comp, log_args=log_args)
 
-    return redirect(url_for('app_routes.edit_components'))
+    return redirect(url_for('app_routes.edit_components', _external=True, _scheme='https'))
 
 # Remove specific Component (POST only)
 @app_routes.route('/remove_component', methods=["POST"])

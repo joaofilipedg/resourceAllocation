@@ -5,6 +5,7 @@ from flask_app.src.sql_sqlalchemy import dbmain
 
 from . import app_routes
 
+
 @app_routes.route("/home")
 @login_required
 def home():

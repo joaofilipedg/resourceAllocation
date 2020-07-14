@@ -3,16 +3,18 @@
 {% block navbar %}
     <nav class="topnav">
         {% if g.user %}
-            <a class="nav-m" href="{{ url_for('app_routes.home') }}">Home</a>
-            <a class="nav-m" href="{{ url_for('app_routes.reservations') }}">New Reservation</a>
-            <a class="nav-m" href="{{ url_for('app_routes.edit_hosts') }}">Hosts</a>
-            <a class="nav-m" href="{{ url_for('app_routes.edit_components') }}">Components</a>
-            <a class="logout" href="{{ url_for('app_routes.logout') }}" >Log Out</a>
-            {% if g.user['super_user'] == 1 %}
-                <span>{{ g.user['username'] }} (su)</span>
-            {% else %}
-                <span>{{ g.user['username'] }}</span>
-            {% endif %}
+            <a class="nav-m" href="{{ url_for('app_routes.home', _external=True, _scheme='https') }}">Home</a>
+            <a class="nav-m" href="{{ url_for('app_routes.reservations', _external=True, _scheme='https') }}">New Reservation</a>
+            <a class="nav-m" href="{{ url_for('app_routes.edit_hosts', _external=True, _scheme='https') }}">Hosts</a>
+            <a class="nav-m" href="{{ url_for('app_routes.edit_components', _external=True, _scheme='https') }}">Components</a>
+            <div class="topnav-right">
+                {% if g.user['super_user'] == 1 %}
+                    <span>{{ g.user['username'] }} (su)</span>
+                {% else %}
+                    <span>{{ g.user['username'] }}</span>
+                {% endif %}
+                <a class="logout" href="{{ url_for('app_routes.logout', _external=True, _scheme='https') }}" >Log Out</a>
+            </div>
         {% endif %}
     </nav>
     <script>
@@ -21,8 +23,14 @@
         var nav_links = document.getElementsByClassName("nav-m");
         for (let index = 0; index < nav_links.length; index++) {
             var element = nav_links[index];
-            if (element.attributes.href.value == pgurl || element.attributes.href.value  == '') {
+            if (element.attributes.href.value == '') {
                 element.classList.add("active");
+            } else {
+                var list_full_page = element.attributes.href.value.split("/");
+                var page = "/" + list_full_page[list_full_page.length-1];
+                if (page == pgurl) {
+                    element.classList.add("active");
+                }
             }
         }
     </script>

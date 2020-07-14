@@ -12,3 +12,4 @@ def_users.csv
 query_ldap
 cloned_repo
 schemaspy
+logs/*

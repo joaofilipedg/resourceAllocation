@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, url_for, current_app
+from flask import render_template, request, redirect, url_for, current_app, flash
 from flask_login import current_user, login_required
 from datetime import datetime
 
@@ -73,9 +73,11 @@ def new_reservation():
         # Create new trigger to end reservation at the end date
         scheduler.add_job(func=mydb.timed_removeReservation, trigger="date", run_date=new_reservation["end_date"], args=[res_id], id='j'+str(res_id), misfire_grace_time=7*24*60*60)
     
-        return redirect(url_for('app_routes.reservations'))
     else:
-        return "ERROR: {}".format(conflict_str)
+        flash("ERROR: {}".format(conflict_str))
+    return redirect(url_for('app_routes.reservations', _external=True, _scheme='https'))
+        # return redirect(url_for('app_routes.reservations', _external=True, _scheme='https'))
+        # return "ERROR: {}".format(conflict_str)
         
 # Cancel reservation (POST only)
 @app_routes.route('/cancel_reservation', methods=["POST"])

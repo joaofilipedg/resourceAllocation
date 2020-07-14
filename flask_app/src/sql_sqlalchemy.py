@@ -354,7 +354,7 @@ class ReservationsDB:
         new_comp_str = "({type}, \"{name}\", \"{gen}\", \"{manu}\")".format(type=new_comp["type"], name=new_comp["name"], gen=new_comp["gen"],manu=new_comp["brand"])
         return self.insert(COMPONENTS_SCHEMA, new_comp_str, log_args=log_args)
 
-    def insert_newUser(self, username):
+    def insert_newUser(self, username, log_args={}):
         new_user_str = "(\"{user}\")".format(user=username)
 
         return self.insert(USERS, new_user_str, log_args=log_args)
@@ -476,7 +476,7 @@ class ReservationsDB:
 
         return list_restypes, list_restypes_ids
 
-    def get_listComponents(self, type_code=""):
+    def get_listComponents(self, type_code="", log_args={}):
         if type_code == "":
             query = "SELECT componentID, name FROM {components} ORDER BY name".format(components=COMPONENTS)
         else:
@@ -603,7 +603,8 @@ def check_conflictsNewReservation(new_res, log_args):
             # print("\t\tnew_res[res_type]: '{}'".format(new_res["res_type"]))
 
             # if either of the reservations (old conflicting one or new one) is of type 1 (RESERVED FULL)
-            conflict_res = "<br/><br/>Conflicting reservation (reservationID, username, hostname, reservation_type, begin_date, end_date):<br/>    {}".format(res)
+            # conflict_res = "<br/><br/>Conflicting reservation (reservationID, username, hostname, reservation_type, begin_date, end_date):<br/>    {}".format(res)
+            conflict_res = " Conflicting reservation (reservationID, username, hostname, reservation_type, begin_date, end_date): {}".format(res)
             if (res[IDX_RESTYPE] == 1) or (int(new_res["res_type"]) == 1):
                 error_str = "New reservation conflicts with existing reservation. (One of them is of type 'RESERVED FULL SYSTEM')"
                 print("\t{}".format(error_str))

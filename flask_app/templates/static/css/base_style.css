@@ -31,6 +31,7 @@ img.avatar {
   /* background-color: #333; */
   background-color: var(--color_buttons_1);
   overflow: hidden;
+  
 }
 /* Style the links inside the navigation bar */
 .topnav a, .topnav span{
@@ -52,9 +53,15 @@ img.avatar {
   color: white;
 }
 /* Style the username and logout button in the nav bar*/
-.topnav span, .topnav .logout{
+/* .topnav span, .topnav .logout{
     float: right;
+} */
+
+/* Right-aligned section inside the top navigation */
+.topnav-right {
+  float: right;
 }
+
 /* Username in the nav bar */
 .topnav span {
     color: black;
@@ -76,6 +83,11 @@ img.avatar {
     margin: 0;
     padding: 14px;
   }
+  
+  .topnav-right {
+    float: none;
+  }
+
 }
 
 /* Change styles for span and cancel button on extra small screens */
@@ -89,3 +101,8 @@ img.avatar {
   }
 } 
 
+.flashes {
+  /* color: red; */
+  background-color: var(--red);
+  white-space: pre-wrap;
+}
