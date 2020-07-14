@@ -9,11 +9,16 @@ from flask_app.src.sql_sqlalchemy import dbmain
 from . import app_routes
 
 # Reservations page, to add new reservations, see current reservations or cancel one active reservation
-@app_routes.route('/reservations')
+@app_routes.route('/reservations', methods=['GET', 'POST'])
 @login_required
 def reservations():
     username = current_user.username
     log_args = {"app": current_app, "user": username}
+
+    preselected_host = "nothing"
+    if request.method == 'POST':
+        print(request.form)
+        preselected_host = request.form["host"]
 
     list_hosts = dbmain.get_listEnabledHosts(log_args=log_args)
     print(list_hosts)
@@ -29,7 +34,9 @@ def reservations():
 
     list_res = dbmain.get_listCurrentReservations(log_args=log_args)
     print(list_res)
-    return render_template('layouts/reservations.html', hosts=list_hosts, num_res_types=len(list_restypes), res_types=list_restypes, res_type_ids = list_restypes_ids, free_hosts=list_freehosts, curr_res=list_res)
+
+    print("YELLOW:'{}'".format(preselected_host))
+    return render_template('layouts/reservations.html', presel_host=preselected_host, hosts=list_hosts, num_res_types=len(list_restypes), res_types=list_restypes, res_type_ids = list_restypes_ids, free_hosts=list_freehosts, curr_res=list_res)
 
 # Add new reservation page (POST only)
 @app_routes.route('/new_reservation', methods=["POST"])

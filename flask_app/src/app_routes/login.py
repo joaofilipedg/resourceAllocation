@@ -64,18 +64,13 @@ def page_not_found(e):
 @app_routes.route('/', methods=['GET', 'POST'])
 @app_routes.route('/login', methods=['GET', 'POST'])
 def login():
-    print(1)
     if current_user.is_authenticated:
-        print(2)
         flash('You are already logged in.')
         return redirect(url_for('app_routes.home', _external=True, _scheme='https'))
-    print(3)
 
     # form = LoginForm(request.form)
     form = LoginForm()
-    print(4)
     if form.validate_on_submit():
-        print(5)
     # if request.method == 'POST' and form.validate():
         # username = request.form.get('username')
         # password = request.form.get('password')
@@ -85,41 +80,32 @@ def login():
 
         try:
             super_user = User.try_login(username, password)
-            print(7)
         except ldap.INVALID_CREDENTIALS:
-            print(8)
             flash('Invalid username or password. Please try again.', 'danger')
             return render_template('layouts/login.html', form=form)
 
-        print(9)
         print("login sucessfull")
         user = User.query.filter_by(username=username).first()
 
         session.permanent = True # to allow for connection timeout after time defined in PERMANENT_SESSION_LIFETIME
 
-        print(10)
         if not user:
             user = User(username, super_user)
-            print(11)
             dbldap.session.add(user)
             dbldap.session.commit()
 
-        print(12)
         # login_user(user, remember=form.remember_me.data)
         login_user(user)
-        print(13)
         # flash('You have successfully logged in.', 'success')
 
         next_page = request.args.get('next')
         if not next_page or url_parse(next_page).netloc != '':
             next_page = url_for('app_routes.home', _external=True, _scheme='https')
-        print(14)
         return redirect(next_page)
 
     # if form.errors:
     #     flash(form.errors, 'danger')
 
-    print(15)
     return render_template('layouts/login.html', form=form)
 
 @app_routes.route('/logout')

@@ -28,11 +28,16 @@
                             <select name="host" id="host">
                                 <option disabled selected value style="display:none"> -- select an option -- </option>
                                 {% for host in hosts %}
-                                    <option value={{host}}>{{host}}</option>
+                                    {% if presel_host == host %}
+                                        <option selected value={{host}}>{{host}}</option>
+                                    {% else %}
+                                        <option value={{host}}>{{host}}</option>
+                                    {% endif %}
                                 {% endfor %}
                             </select>
                         </div>
-                        <script>
+                        <script>        
+                            console.log({{ presel_host|tojson }});       
                             var select_host = new vanillaSelectBox("#host", {
                                 "maxHeight": 300
                             });
