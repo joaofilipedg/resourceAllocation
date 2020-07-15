@@ -636,3 +636,55 @@ def check_conflictsNewReservation(new_res, log_args):
             # if 
 
     return False, ""
+
+def check_hostStatusNextWeek(host, log_args):
+    from datetime import datetime, timedelta
+    
+    next_week = [0] * 7 # one field for each day of the next week. 0-free, 1-reserved full, 2-reserved fpga, 3-reserved gpu, 4-running programs, 5-developing, 6-reserved gpu and fpga
+    
+    time_now = datetime.now()
+    current_day = time_now.strftime("%Y-%m-%d")
+    time_in_one_week = time_now + timedelta(days=7)
+    nextweek_day = time_in_one_week.strftime("%Y-%m-%d")
+    print(current_day)
+    print(nextweek_day)
+
+    list_res = dbmain.get_listReservationsHost(host, "*", log_args=log_args)
+    for res in list_res:
+        # check if reservation falls into the next week
+        if (res[IDX_BEGIN_DATE] >= nextweek_day) or (res[IDX_END_DATE] <= current_day):
+            continue
+
+        # if it reaches here there is already some days where the host is in use during the next week
+        day_aux = time_now
+        for day_i in range(0,7):
+            str_day_aux = day_aux.strftime("%Y-%m-%d")
+            day_aux += timedelta(days=1)
+            
+            if next_week[day_i] == 1:
+                continue     
+
+            if (str_day_aux >= res[IDX_BEGIN_DATE]) and (str_day_aux <= res[IDX_END_DATE]):
+                
+                if next_week[day_i] == 0:
+                    # if day was still assigned as free
+                    next_week[day_i] = res[IDX_RESTYPE]
+                
+                elif ((next_week[day_i] == 2) and (res[IDX_RESTYPE] == 3)) or ((next_week[day_i] == 3) and (res[IDX_RESTYPE] == 2)):
+                    # if day has GPU and FPGA reserved
+                    next_week[day_i] = 6
+
+                elif next_week[day_i] == 7:
+                    # if day already had GPU and FPGA reserved only allow CPU reserved
+                    if (res[IDX_RESTYPE] == 1): 
+                        next_week[day_i] = 1
+
+                elif next_week[day_i] < res[IDX_RESTYPE]:
+                    # if day still had lower priority than this reservation
+                    next_week[day_i] = res[IDX_RESTYPE]
+             
+        if next_week == [1] * 7:
+            # this would be already the worst case scenario, no point in continuing through the reservations
+            break
+
+    return next_week

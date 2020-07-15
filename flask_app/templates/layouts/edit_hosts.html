@@ -27,7 +27,7 @@
                         <div class="col header">CPU</div>
                         <div class="col header">GPU</div>
                         <div class="col header">FPGA</div>
-                        <div class="col header">FREE</div>
+                        <div class="col header">Next 7 days</div>
                     </div>
 
                     <!-- LOOP FOR EACH HOST IN THE DB -->
@@ -113,16 +113,58 @@
                             {% else %}
                                 <div class="col" id={{ hostname ~ "_" ~ field_i }} name={{ hostname ~ "_" ~ field_i }}>{{ host[field_i] }}</div>
                             {% endif %}
-                            
                         {% endfor %}
 
                         <!-- Displays if host is free or not-->
                         {% set host_free = host[6] | int %}
-                        {% if host_free == 1 %}
-                            <div class="col" name={{ hostname ~ "_" ~ 6 }}>Free</div> 
-                        {% else %}
-                            <div class="col" name={{ hostname ~ "_" ~ 6 }}>In use</div> 
-                        {% endif %}
+                        <div class="col" style="text-align:center">
+                            <div class="tooltip">
+                                <span id={{ hostname~ "_day0" }} class="circle"></span>
+                                <span class="tooltiptext" id={{ hostname ~ "_day0_tooltiptext"}}></span>
+                            </div>
+                            <div class="tooltip">
+                                <span id={{ hostname~ "_day1" }} class="circle"></span>
+                                <span class="tooltiptext" id={{ hostname ~ "_day1_tooltiptext"}}></span>
+                            </div>
+                            <div class="tooltip">
+                                <span id={{ hostname~ "_day2" }} class="circle"></span>
+                                <span class="tooltiptext" id={{ hostname ~ "_day2_tooltiptext"}}></span>
+                            </div>
+                            <div class="tooltip">
+                                <span id={{ hostname~ "_day3" }} class="circle"></span>
+                                <span class="tooltiptext" id={{ hostname ~ "_day3_tooltiptext"}}></span>
+                            </div>
+                            <div class="tooltip">
+                                <span id={{ hostname~ "_day4" }} class="circle"></span>
+                                <span class="tooltiptext" id={{ hostname ~ "_day4_tooltiptext"}}></span>
+                            </div>
+                            <div class="tooltip">
+                                <span id={{ hostname~ "_day5" }} class="circle"></span>
+                                <span class="tooltiptext" id={{ hostname ~ "_day5_tooltiptext"}}></span>
+                            </div>
+                            <div class="tooltip">
+                                <span id={{ hostname~ "_day6" }} class="circle"></span>
+                                <span class="tooltiptext" id={{ hostname ~ "_day6_tooltiptext"}}></span>
+                            </div>
+                        </div>
+                        <!-- <div class="tooltip">
+                            {% if host_free == 1 %}
+                                <div class="col" name={{ hostname ~ "_" ~ 6 }}>Free</div> 
+                            {% else %}
+                                <div class="col" name={{ hostname ~ "_" ~ 6 }}>In use</div> 
+                            {% endif %}
+                            <span class="tooltiptext tipfree" id={{ hostname ~ "_free_tooltiptext"}}>
+                                <div style="text-align:center">
+                                    <span id={{ hostname~ "_day0" }}  class="circle"></span>
+                                    <span id={{ hostname~ "_day1" }}  class="circle"></span>
+                                    <span id={{ hostname~ "_day2" }}  class="circle"></span>
+                                    <span id={{ hostname~ "_day3" }}  class="circle"></span>
+                                    <span id={{ hostname~ "_day4" }}  class="circle"></span>
+                                    <span id={{ hostname~ "_day5" }}  class="circle"></span>
+                                    <span id={{ hostname~ "_day6" }}  class="circle"></span>
+                                </div>
+                            </span>
+                        </div> -->
 
                         {% if current_user.super_user == 1 %}
                         <!-- ONLY SHOW BUTTONS IF USER IS ADMIN -->
@@ -143,6 +185,50 @@
                         {% endif %}
                     </div>
                     {% endfor %}
+
+                    <!-- Color the tooltip circles according to the host usage over the next week -->
+                    <script>
+                        var hosts = {{ hosts| safe }};
+                        var hosts_usage = {{ hosts_usage| safe }};
+                        for (let index = 0; index < hosts.length; index++) {
+                            var host = hosts[index];
+                            var hostname = host[0];
+                            var host_usage = hosts_usage[hostname];
+                            for (let i = 0; i<7; i++) {
+                                str_aux = hostname + "_day" + i.toString();
+                                if (host_usage[i] > 0) {
+                                    console.log(str_aux);
+                                    if (host_usage[i] == 1) {
+                                        // FULL RESERVED
+                                        document.getElementById(str_aux).style.background = "red";
+                                        document.getElementById(str_aux+"_tooltiptext").innerHTML = res_types_1;
+                                    } else {
+                                        if (host_usage[i] == 2 || host_usage[i] == 3  || host_usage[i] == 6) {
+                                            // PARTIALLY RESERVED
+                                            document.getElementById(str_aux).style.background = "orange";
+                                            if (host_usage[i] == 2) {
+                                                document.getElementById(str_aux + "_tooltiptext").innerHTML = res_types_2;
+                                            } else {
+                                                if (host_usage[i] == 3) {
+                                                    document.getElementById(str_aux + "_tooltiptext").innerHTML = res_types_3;
+                                                } else {
+                                                    document.getElementById(str_aux + "_tooltiptext").innerHTML = res_types_6;
+                                                }
+                                            }
+                                            
+                                        } else {
+                                            // IN USE, BUT NOTHING IS RESERVED
+                                            document.getElementById(str_aux).style.background = "yellow";
+                                            document.getElementById(str_aux + "_tooltiptext").innerHTML = res_types_5;
+                                        }
+                                    }
+                                } else {
+                                    // FREE
+                                    document.getElementById(str_aux + "_tooltiptext").innerHTML = res_types_0;
+                                }
+                            }
+                        }
+                    </script>
 
                     <!-- Make hostnames clickable and redirect to reservations page with host pre-selected -->
                     <script>

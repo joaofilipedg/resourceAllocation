@@ -5,7 +5,10 @@
 .hosts-table .row {
   grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: repeat(9, minmax(0, 1fr));
+  /* grid-template-columns: repeat(9, minmax(0, 1fr)); */
+  /* grid-template-columns: 1fr 8% repeat(3, 1fr) 2fr repeat(3, 8%); */
+  /* grid-template-columns: 2fr 1fr repeat(3, 2fr) 3fr repeat(3, 1fr); */
+  grid-template-columns: 12.5% 6.25% repeat(3, 12.5%) 19% repeat(3, 8.25%);
 }
 
 .hosts-table .col {
@@ -26,7 +29,7 @@
 }
 
 .hosts-table .col.header{
-    font-weight: bold;
+  font-weight: bold;
 }
 
 .editBtn, .disableBtn, .removeBtn {
@@ -96,14 +99,22 @@
 }
 
 .comps-table .col {
-    border-radius: 5px;
-    padding: 0px;
-    font-size: 100%;
-    align-self: center;
-    text-align: center;
-    color: var(--color_2);
+  border-radius: 5px;
+  padding: 0px;
+  font-size: 100%;
+  align-self: center;
+  text-align: center;
+  color: var(--color_2);
 }
 
 .comps-table .col.header{
-    font-weight: bold;
+  font-weight: bold;
+}
+
+.circle {
+  height: 15px;
+  width: 15px;
+  border-radius: 50%;
+  display: inline-block;
+  background: var(--inesc_green);
 }

@@ -29,3 +29,10 @@ editcomp_edit_comp = "";
 editcomp_old_name = "";
 editcomp_old_brand = "";
 editcomp_old_gen = "";
+
+res_types_0 = "Free";
+res_types_1 = "Reserved Full System";
+res_types_2 = "Reserved FPGA";
+res_types_3 = "Reserved GPU";
+res_types_5 = "Developing";
+res_types_6 = "Reserved GPU and FPGA";

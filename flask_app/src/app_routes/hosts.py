@@ -2,6 +2,7 @@ from flask import render_template, request, redirect, url_for, current_app
 from flask_login import current_user, login_required
 from datetime import datetime
 
+import flask_app.src.sql_sqlalchemy as mydb
 from flask_app.src.sql_sqlalchemy import dbmain, CODE_CPU, CODE_GPU, CODE_FPGA
 
 from . import app_routes
@@ -20,7 +21,10 @@ def edit_hosts():
     list_gpus, list_gpu_ids = dbmain.get_listComponents(CODE_GPU, log_args=log_args)
     list_fpgas, list_fpga_ids = dbmain.get_listComponents(CODE_FPGA, log_args=log_args)
 
+
     list_hostscomps = dbmain.get_listHostsComponents(log_args=log_args)
+    
+    # create dictionary with components of each host (eg., dict_hostgpus["saturn"] = ["TitanX", "Titan XP"])
     print(list_hostscomps)
     dict_hostgpus = {host[0]: [] for host in full_list_hosts}
     dict_hostfpgas = {host[0]: [] for host in full_list_hosts}
@@ -32,7 +36,13 @@ def edit_hosts():
     print(dict_hostgpus)
     print(dict_hostfpgas)
 
-    return render_template('layouts/edit_hosts.html', all_hostgpus=dict_hostgpus, all_hostfpgas=dict_hostfpgas, hosts=full_list_hosts, cpus=list_cpus, cpu_ids=list_cpu_ids, num_cpus=len(list_cpus), gpus=list_gpus, gpu_ids=list_gpu_ids, num_gpus=len(list_gpus), fpgas=list_fpgas, fpga_ids=list_fpga_ids, num_fpgas=len(list_fpgas))
+    # create dictionary with usage status of each host over the next week
+    dict_hosts_usage = {}
+    for host in full_list_hosts:
+        dict_hosts_usage[host[0]] = mydb.check_hostStatusNextWeek(host[0], log_args)
+    print(dict_hosts_usage)
+
+    return render_template('layouts/edit_hosts.html', hosts_usage=dict_hosts_usage, all_hostgpus=dict_hostgpus, all_hostfpgas=dict_hostfpgas, hosts=full_list_hosts, cpus=list_cpus, cpu_ids=list_cpu_ids, num_cpus=len(list_cpus), gpus=list_gpus, gpu_ids=list_gpu_ids, num_gpus=len(list_gpus), fpgas=list_fpgas, fpga_ids=list_fpga_ids, num_fpgas=len(list_fpgas))
 
 # Enable/Disable specific Host (POST only)
 @app_routes.route('/toggle_host', methods=["POST"])
