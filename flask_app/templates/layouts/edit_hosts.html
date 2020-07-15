@@ -144,40 +144,36 @@
                     </div>
                     {% endfor %}
 
-
+                    <!-- Make hostnames clickable and redirect to reservations page with host pre-selected -->
                     <script>
                         var hosts = {{ hosts| safe }};
                         for (let index = 0; index < hosts.length; index++) {
                             var host = hosts[index];
                             var hostname = host[0];
-                            console.log(hostname);
-                            var name_aux = "#" + hostname + "_0";
-                            console.log(name_aux);
-                            $(name_aux).click(function () {
+                            var name_aux = hostname + "_0";
 
-                                console.log("Clicked");
+                            document.getElementById(name_aux).classList.add("clickable");
 
-                                // var data = { "host": this.textContent };
-                                // console.log(data);
-                                
+                            $("#" + name_aux).click(function () {
+                                // To send post message, create auxiliary form
                                 const form = document.createElement('form');
                                 form.method = "post";
                                 form.action = "/reservations";
 
+                                // Add field to the form
                                 const hiddenField = document.createElement('input');
                                 hiddenField.type = 'hidden';
                                 hiddenField.name = "host";
                                 hiddenField.value = this.textContent;
-
                                 form.appendChild(hiddenField);
-                                
                                 document.body.appendChild(form);
-                                form.submit();
 
-                                // document.forms['test_post'].submit();
+                                // submit form
+                                form.submit();
                             });
                         }
                     </script>
+
                     {% if current_user.super_user == 1 %}
                     <!-- IF USER IS ADMIN -->
 

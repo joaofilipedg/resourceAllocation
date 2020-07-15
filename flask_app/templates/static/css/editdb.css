@@ -9,12 +9,20 @@
 }
 
 .hosts-table .col {
-    border-radius: 5px;
-    padding: 0px;
-    font-size: 100%;
-    align-self: center;
-    text-align: center;
-    color: var(--color_2);
+  border-radius: 5px;
+  padding: 0px;
+  font-size: 100%;
+  align-self: center;
+  text-align: center;
+  color: var(--color_2);
+}
+
+.hosts-table .col.clickable {
+  color: var(--inesc_blue);
+  text-decoration: underline;
+}
+.hosts-table .col.clickable:hover{
+  cursor: pointer;
 }
 
 .hosts-table .col.header{
