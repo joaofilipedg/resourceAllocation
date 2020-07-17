@@ -12,6 +12,10 @@ footer {
     line-height: 1.5em;
 }
 
+h1, h2 {
+  color: var(--color_1);
+}
+
 /* Center the avatar image inside this container */
 .imgcontainer {
   text-align: center;
@@ -102,8 +106,19 @@ img.avatar {
   }
 } 
 
-.flashes {
+
+
+.flashes{
   /* color: red; */
+  /* background-color: var(--red); */
+  /* white-space: pre-wrap; */
+  padding: 30px;
+}
+
+.flashes.message {
   background-color: var(--red);
-  white-space: pre-wrap;
+}
+
+.flashes.success{
+  background-color: var(--inesc_green);
 }

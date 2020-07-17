@@ -7,6 +7,10 @@
     <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
     <script type="text/javascript" src="{{url_for('static', filename='js/vanillaSelectBox.js')}}"></script>
+    {% if current_user.super_user == 1 %}
+        <!-- ONLY IMPORT JAVASCRIPT IF USER IS ADMIN -->
+        <script type=text/javascript src="{{url_for('static', filename='js/edit_db_admin.js')}}"></script>
+    {% endif %}
 {% endblock %}
 
 
@@ -47,8 +51,11 @@
                             <label class="cell-label">Reservation Type</label>
                             <select name="res_type" id="res_type">
                                 <option disabled selected value style="display:none"> -- select an option -- </option>
-                                {% for i in range(0, num_res_types) %}
-                                    <option value={{res_type_ids[i]}}>{{res_types[i]}}</option>
+                                {% for res_i in range(0, num_res_types) %}
+                                    {% set res = res_types[res_i] %}
+                                    {% set res_id = res[0] %}
+                                    {% set res_name = res[1] %}
+                                    <option value={{ res_id }}> {{ res_name }} </option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -71,7 +78,7 @@
                                         maxSpan: {"days": 7},
                                         timePicker: true,
                                         timePicker24Hour: true,
-                                        timePickerIncrement: 1,
+                                        timePickerIncrement: 30,
                                         startDate: moment().startOf('hour'),
                                         endDate: moment().startOf('hour').add(32, 'hour'),
                                         locale: {
@@ -165,9 +172,87 @@
     <!-- <hr> -->
     <div class="divider div-transparent"></div>
     
-    
-    <!-- LIST OF FREE HOSTS -->
     <div class="container">
+        <p><span class="div-title">List of Reservation Types</span></p>
+        <div class="my-div">
+            <form name="res_types_form" onsubmit="return false">
+                <div class="restype-table">
+                    <!-- LOOP FOR EACH HOST IN THE DB -->
+                    {% for res_i in range(0, num_res_types) %}
+                        {% set res = res_types[res_i] %}
+                        {% set res_id = res[0] %}
+                        {% set res_name = res[1] %}
+                        {% set res_description = res[2] %}
+                        <!-- <div class="row">
+                            <div class="col header">ID</div>
+                            <div class="col" name={{ res_id ~ "_id" }}>{{ res_id }}</div>
+                        </div> -->
+                        <div class="row">
+                            <!-- <div class="col header">Name</div> -->
+                            <div class="col header" name={{ res_id ~ "_name" }}>{{ res_name }}</div>
+                        </div>
+                        <div class="row">
+                            <!-- <div class="col header">Description</div> -->
+                            <div class="col" name={{ res_id ~ "_description" }}>{{ res_description }}</div>
+                        </div>
+                        
+                            
+            
+                        {% if current_user.super_user == 1 %}
+                            <div class="row-buts">
+
+                                <!-- ONLY SHOW BUTTONS IF USER IS ADMIN -->
+                                <div class="col">
+                                </div>
+                                <!-- Edit Button -->
+                                <div class="col">
+                                    <button type="submit" class="editBtn" name="btnedit" value={{res_id}}>Edit</button>
+                                </div>
+                                <!-- Remove Button-->
+                                <div class="col">
+                                    <button type="submit" class="removeBtn" name="btnremove" value={{cpu_id}}>Remove</button>
+                                </div>
+                            </div>
+                        {% endif %}
+                        <!-- <hr class="special-hr" style="margin-top: 16px; margin-bottom: 16px;"/> -->
+                        <hr />
+                    {% endfor %}
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if current_user.super_user == 1 %}
+    <!-- ONLY SHOW BUTTONS IF USER IS ADMIN -->
+        <!-- Script for the buttons of each reservation type -->
+        <script>
+            if (restypes_first) {
+                restypes_first = false;
+                var res_types = {{ res_types| safe }};
+
+                // EDIT BUTTONS
+                var edit_buttons = document.getElementsByName("btnedit");
+                for (i = 0; i < edit_buttons.length; i++) {
+                    var but_aux_e = edit_buttons[i];
+                    but_aux_e.onclick = function () {
+                        editResType(this);
+                    };
+                }
+
+                // REMOVE BUTTONS
+                var remove_buttons = document.getElementsByName("btnremove");
+                for (i = 0; i < remove_buttons.length; i++) {
+                    var but_aux_r = remove_buttons[i];
+                    but_aux_r.onclick = function () {
+                        removeResType(this.value);
+                    };
+                }
+            }
+        </script>
+    {% endif %}
+
+    <!-- LIST OF FREE HOSTS -->
+    <!-- <div class="container">
         <p><span class="div-title">List of currently free hosts</span></p>
         <div class="free-div">
             <ul class="l-free-hosts">
@@ -191,5 +276,5 @@
                 );
             }
         </script>
-    </div>
+    </div> -->
 {% endblock %}

@@ -8,7 +8,7 @@
     <script type=text/javascript src="{{url_for('static', filename='js/edit_db.js')}}"></script>
 
     {% if current_user.super_user == 1 %}
-    <!-- ONLY IMPORT JAVASCRIPT IF USER IS ADMIN -->
+        <!-- ONLY IMPORT JAVASCRIPT IF USER IS ADMIN -->
         <script type=text/javascript src="{{url_for('static', filename='js/edit_db_admin.js')}}"></script>
     {% endif %}
 {% endblock %}
@@ -21,7 +21,12 @@
         <div class="my-div">
             <form name="edit_host_form" onsubmit="return false">
                 <div class="hosts-table">
+
+                    {% if current_user.super_user == 1 %}
+                    <div class="row-admin">
+                    {% else %}
                     <div class="row">
+                    {% endif %}
                         <div class="col header">Hostname</div>
                         <div class="col header">IP</div>
                         <div class="col header">CPU</div>
@@ -33,7 +38,13 @@
                     <!-- LOOP FOR EACH HOST IN THE DB -->
                     {% for host in hosts %}
                     <hr class="special-hr"/>
+                    
+                    {% if current_user.super_user == 1 %}
+                    <div class="row-admin">
+                    {% else %}
                     <div class="row">
+                    {% endif %}
+
                         {% set hostname = host[0] %} <!--hostname-->
                         {% set host_cpu = host[2] | int %} <!--cpuID of the host-->
                         {% set host_num_gpus = host[3] | int %} <!--number of gpus in the host-->
@@ -301,7 +312,7 @@
                                 for (i = 0; i < edit_buttons.length; i++) {
                                     var but_aux_e = edit_buttons[i];
                                     but_aux_e.onclick = function () {
-                                        editHost(this, cpus, gpus, fpgas);
+                                        editHost(this);
                                     };
                                 }
 

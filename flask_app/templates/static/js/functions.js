@@ -1,13 +1,13 @@
-function changeHostSelected(host) {
-    var sel = document.getElementById('host');
-    var opts = sel.options;
-    for (var opt, j = 0; opt = opts[j]; j++) {
-        if (opt.value == host) {
-            sel.selectedIndex = j;
-            break;
-        }
-    }
-}
+// function changeHostSelected(host) {
+//     var sel = document.getElementById('host');
+//     var opts = sel.options;
+//     for (var opt, j = 0; opt = opts[j]; j++) {
+//         if (opt.value == host) {
+//             sel.selectedIndex = j;
+//             break;
+//         }
+//     }
+// }
 
 // verify that reservation is valid before sending request to server
 function verifyReservation() {

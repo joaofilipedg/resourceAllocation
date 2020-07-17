@@ -65,7 +65,7 @@ def page_not_found(e):
 @app_routes.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        flash('You are already logged in.')
+        flash('You are already logged in.', 'success')
         return redirect(url_for('app_routes.home', _external=True, _scheme='https'))
 
     # form = LoginForm(request.form)

@@ -23,9 +23,9 @@ def reservations():
     list_hosts = dbmain.get_listEnabledHosts(log_args=log_args)
     print(list_hosts)
 
-    list_restypes, list_restypes_ids = dbmain.get_listResTypes(log_args=log_args)
+    list_restypes = dbmain.get_fullListResTypes(log_args=log_args)
     print(list_restypes)
-    print(list_restypes_ids)
+    # print(list_restypes_ids)
     
     list_freehosts = dbmain.get_listFreeHosts(log_args=log_args)
     print(list_freehosts)
@@ -36,7 +36,7 @@ def reservations():
     print(list_res)
 
     print("YELLOW:'{}'".format(preselected_host))
-    return render_template('layouts/reservations.html', presel_host=preselected_host, hosts=list_hosts, num_res_types=len(list_restypes), res_types=list_restypes, res_type_ids = list_restypes_ids, free_hosts=list_freehosts, curr_res=list_res)
+    return render_template('layouts/reservations.html', presel_host=preselected_host, hosts=list_hosts, num_res_types=len(list_restypes), res_types=list_restypes, free_hosts=list_freehosts, curr_res=list_res)
 
 # Add new reservation page (POST only)
 @app_routes.route('/new_reservation', methods=["POST"])
@@ -97,4 +97,32 @@ def cancel_reservation():
     print(res_id)
 
     mydb.manual_removeReservation(res_id, log_args)
+    return "OK"
+
+
+# Remove specific Reservation Type (POST only)
+@app_routes.route('/remove_reservation_type', methods=["POST"])
+@login_required
+def remove_reservation_type():
+    username = current_user.username
+    log_args = {"app": current_app, "user": username}
+
+    restypeID = request.get_json().get("res_id", "")
+    dbmain.del_restype(restypeID, log_args=log_args)
+    return "OK"
+
+# Update specific reservation type (change name or description) (POST only)
+@app_routes.route('/update_reservation_type', methods=["POST"])
+@login_required
+def update_reservation_type():
+    username = current_user.username
+    log_args = {"app": current_app, "user": username}
+
+    args = request.get_json()
+    restypeID = args.get("id", "")
+    name = args.get("name", "")
+    description = args.get("description", "")
+
+    dbmain.update_configRestype(restypeID, name, description, log_args=log_args)
+
     return "OK"

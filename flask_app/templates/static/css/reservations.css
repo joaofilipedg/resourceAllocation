@@ -149,3 +149,49 @@ span.drp-selected {
 .l-free-hosts li:hover {
   background: var(--color_3);
 }
+
+.restype-table {
+  max-width: inherit;
+}
+
+.restype-table .row {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: auto; 
+}
+
+.restype-table .row-buts {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: auto 20% 20%;
+}
+
+
+.restype-table .col {
+  border-radius: 5px;
+  padding: 0px;
+  font-size: 100%;
+  align-self: center;
+  text-align: left;
+  color: var(--color_2);
+}
+
+.restype-table .col.header{
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+@media screen and (max-width: 600px) {
+  .res-table .row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+
+/* .form-body.restype-form {
+  grid-template-columns: repeat(5, minmax(100px, 1fr));
+}
+
+.form-body.restype-form .row {
+  grid-template-columns: repeat(5, minmax(100px, 1fr));
+} */

@@ -5,6 +5,12 @@
 .hosts-table .row {
   grid-column: 1 / -1;
   display: grid;
+  grid-template-columns: 16.5% 10.25% repeat(3, 16.5%) 23%;
+}
+
+.hosts-table .row-admin {
+    grid-column: 1 / -1;
+    display: grid;
   /* grid-template-columns: repeat(9, minmax(0, 1fr)); */
   /* grid-template-columns: 1fr 8% repeat(3, 1fr) 2fr repeat(3, 8%); */
   /* grid-template-columns: 2fr 1fr repeat(3, 2fr) 3fr repeat(3, 1fr); */
@@ -50,20 +56,22 @@
 }
 
 .form-body.host-form {
-  grid-template-columns: repeat(6, minmax(100px, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
 }
 
 .form-body.host-form .row {
-  grid-template-columns: repeat(6, minmax(100px, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
 }
 
+
 .form-body.comp-form {
-  grid-template-columns: repeat(5, minmax(100px, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 
 .form-body.comp-form .row {
-  grid-template-columns: repeat(5, minmax(100px, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
 }
+
 
 .new-h-label {
   font-size: 55%;
@@ -95,7 +103,13 @@
 .comps-table .row {
   grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.comps-table .row-admin {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 
 .comps-table .col {
@@ -110,6 +124,31 @@
 .comps-table .col.header{
   font-weight: bold;
 }
+
+/* When the screen is less than 600px wide, stack the links and the search field vertically instead of horizontally */
+@media screen and (max-width: 600px) {
+  .form-body.host-form {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .form-body.host-form .row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .form-body.comp-form {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .form-body.comp-form .row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .hosts-table .row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .comps-table .row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
 
 .circle {
   height: 15px;

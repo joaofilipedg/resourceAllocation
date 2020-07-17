@@ -388,6 +388,11 @@ class ReservationsDB:
 
         return self.del_entry(COMPONENTS, "componentID", componentID, log_args=log_args)
 
+
+    # Remove restype from database
+    def del_restype(self, restypeID, log_args={}):
+        return self.del_entry(RESTYPES, "restypeID", restypeID, log_args=log_args)
+
     def toggle_enableHost(self, hostname, log_args={}):
         query = "SELECT enabled FROM {} WHERE hostname=\"{}\";".format(HOSTS, hostname)
         enabled = self.print_query(query=query, log_args=log_args)[0]
@@ -454,6 +459,22 @@ class ReservationsDB:
 
         return res
 
+    def update_configRestype(self, restypeID, name, description, log_args={}):
+
+        # update name
+        update = "UPDATE {table} SET name = \"{name}\" WHERE restypeID={id}".format(table=RESTYPES, name=name, id=restypeID)
+        res = self.execute_query(update, log_args=log_args)
+        if res == -1:
+            return res
+
+        # update description
+        update = "UPDATE {table} SET description = \"{description}\" WHERE restypeID={id}".format(table=RESTYPES, description=description, id=restypeID)
+        res = self.execute_query(update, log_args=log_args)
+        if res == -1:
+            return res
+
+        return res
+
     # QUERIES~
     # Get list of users in the DB
     def get_listUsers(self, log_args={}):
@@ -464,17 +485,6 @@ class ReservationsDB:
     def get_listEnabledHosts(self, log_args={}):
         query = "SELECT hostname FROM {hosts} WHERE enabled=1 ORDER BY hostname;".format(hosts=HOSTS)
         return self.print_query(query=query, log_args=log_args)
-
-    # Get list of different types of reservations
-    def get_listResTypes(self, log_args={}):
-        query = "SELECT name, restypeID, description FROM {restypes};".format(restypes=RESTYPES)
-        
-        result_query = self.print_query(query=query, log_args=log_args)
-
-        list_restypes = [i[0] for i in result_query]
-        list_restypes_ids = [i[1] for i in result_query]
-
-        return list_restypes, list_restypes_ids
 
     def get_listComponents(self, type_code="", log_args={}):
         if type_code == "":
@@ -502,6 +512,12 @@ class ReservationsDB:
             query = "SELECT * FROM {components} ORDER BY name".format(components=COMPONENTS)
         else:
             query = "SELECT * FROM {components} WHERE type={type} ORDER BY name".format(components=COMPONENTS, type=type_code)
+        return self.print_query(query=query, log_args=log_args)
+
+    # Get list of different types of reservations
+    def get_fullListResTypes(self, log_args={}):
+        query = "SELECT * FROM {restypes};".format(restypes=RESTYPES)
+ 
         return self.print_query(query=query, log_args=log_args)
 
     # Get list of current free hosts (that are enabled)

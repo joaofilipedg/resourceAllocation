@@ -32,9 +32,8 @@ function removeHost(hostname) {
 }
 
 // Allows users to edit the setup of a host
-function editHost(btn, cpus, gpus, fpgas) {
-    var hostname = btn.value;
-
+function editHost(btn) {
+    hostname = btn.value;
     // Checks if there was already a host being edited (only allowed 1 at a time)
     if (!(editdb_edit)) {
 
@@ -202,8 +201,7 @@ function removeComponent(comp_id) {
 
 // Allows users to edit the characteristics of a component
 function editComponent(btn) {
-    var comp_id = btn.value;
-
+    comp_id = btn.value;
     // Checks if there was already a host being edited (only allowed 1 at a time)
     if (!(editcomp_edit)) {
 
@@ -384,4 +382,121 @@ function addToolip(name_aux, comp_ids, comps) {
         str_aux = "None";
     }
     document.getElementById(name_aux + "_tooltiptext").innerHTML = str_aux;
+}
+
+// Allows users to edit the characteristics of a component
+function editResType(btn) {
+    res_id = btn.value;
+
+    // Checks if there was already a host being edited (only allowed 1 at a time)
+    if (!(editrestype_edit)) {
+
+        // some global variables
+        editrestype_edit = true;
+        editrestype_typeid = res_id;
+
+        // change button
+        btn.style.background = "#268bd2";
+        btn.innerHTML = "Confirm";
+
+        // fields that can be edited
+        var name = document.getElementsByName(res_id + "_name")[0];
+        var description = document.getElementsByName(res_id + "_description")[0];
+
+        // saves previous values
+        editrestype_old_name = name.innerText;
+        editrestype_old_description = description.innerText;
+
+        // swaps the ip field with an input field
+        var input_name = document.createElement('input');
+        input_name.type = 'text';
+        input_name.id = "myInput-name";
+        input_name.value = name.innerHTML;
+        name.innerHTML = '';
+        name.appendChild(input_name);
+
+        var input_description = document.createElement('input');
+        input_description.type = 'text';
+        input_description.id = "myInput-description";
+        input_description.value = description.innerHTML;
+        description.innerHTML = '';
+        description.appendChild(input_description);
+
+        return true;
+    } else {
+        if (res_id == editrestype_typeid) {
+            // confirm was pressed
+            var name_input = document.getElementById("myInput-name");
+            var description_input = document.getElementById("myInput-description");
+            var selected_name = name_input.value;
+            var selected_description = description_input.value;
+
+            console.log(selected_name);
+            console.log(editrestype_old_name);
+            console.log(selected_description);
+            console.log(editrestype_old_description);
+
+            // Check if there was any change made
+            if (selected_name != editrestype_old_name || selected_description != editrestype_old_description) {
+                // Changes were made, need to be updated in the DB
+                var data = { "id": res_id, "name": selected_name, "description": selected_description };
+                $.ajax({
+                    url: "/update_reservation_type",
+                    method: "POST",
+                    contentType: "application/json",
+                    datatype: "json",
+                    data: JSON.stringify(data),
+                    success: function () {
+                        window.location = "/reservations";
+                    },
+                    error: function () {
+                        alert("error");
+                    }
+                });
+                return true;
+            } else {
+                // No changes were made
+                var name = document.getElementsByName(res_id + "_name")[0];
+                var description = document.getElementsByName(res_id + "_description")[0];
+
+                name.innerHTML = editrestype_old_name;
+                description.innerHTML = editrestype_old_description;
+
+                // Reset button style
+                btn.style.background = "#586e75";
+                btn.innerHTML = "Edit";
+
+                // Reset global variables
+                editrestype_edit = false;
+                editrestype_typeid = "";
+                editrestype_old_name = "";
+                editrestype_old_description = "";
+                return true;
+            }
+        } else {
+            return false;
+        }
+    }
+}
+
+function removeResType(res_id) {
+    var sure = window.confirm("Are you sure you want to remove this Reservation Type?");
+    if (sure) {
+        var data = { "res_id": res_id };
+        return $.ajax({
+            url: "/remove_reservation_type",
+            method: "POST",
+            contentType: "application/json",
+            datatype: "json",
+            data: JSON.stringify(data),
+            success: function () {
+                window.location = "/reservations";
+            },
+            error: function () {
+                alert("error");
+            }
+        });
+    } else {
+        return false;
+    }
 }
