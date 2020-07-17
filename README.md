@@ -13,7 +13,9 @@
     - flask-wtf (validated with v0.14.3)
     - flask-sqlalchemy (validated with v2.4.1)
     - flask-login (validated with v0.5.0)
-    - sqlalchemy-utls (validated with v.0.36.5)
+    - flask-migrate (validated with v2.4.0)
+    - sqlalchemy-utils (validated with v.0.36.5)
+
 - sqlite3 
 - nginx (validated with v1:1.16.1-1.el7)
 
@@ -25,7 +27,14 @@ conda create -n resalloc_env python=3.7
 conda activate resalloc_env
 conda install flask gunicorn apscheduler flask-apscheduler SQLAlchemy
 conda install -c conda-forge python-ldap 
+conda install -c conda-forge flask-migrate 
 conda install sqlalchemy-utils
+```
+
+### Set environment variables
+
+```bash
+python -c 'import os; print(os.urandom(16))'
 ```
 
 ### Test gunicorn and flask
