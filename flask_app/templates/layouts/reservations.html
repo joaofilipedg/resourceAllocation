@@ -32,10 +32,12 @@
                             <select name="host" id="host">
                                 <option disabled selected value style="display:none"> -- select an option -- </option>
                                 {% for host in hosts %}
-                                    {% if presel_host == host %}
-                                        <option selected value={{host}}>{{host}}</option>
+                                    {% set hostname = host["hostname"]%}
+                                    {% set host_id = host["id"]%}
+                                    {% if presel_host == hostname %}
+                                        <option selected value={{host_id}}>{{hostname}}</option>
                                     {% else %}
-                                        <option value={{host}}>{{host}}</option>
+                                        <option value={{host_id}}>{{hostname}}</option>
                                     {% endif %}
                                 {% endfor %}
                             </select>
@@ -51,10 +53,9 @@
                             <label class="cell-label">Reservation Type</label>
                             <select name="res_type" id="res_type">
                                 <option disabled selected value style="display:none"> -- select an option -- </option>
-                                {% for res_i in range(0, num_res_types) %}
-                                    {% set res = res_types[res_i] %}
-                                    {% set res_id = res[0] %}
-                                    {% set res_name = res[1] %}
+                                {% for res in res_types %}
+                                    {% set res_id = res["id"] %}
+                                    {% set res_name = res["name"] %}
                                     <option value={{ res_id }}> {{ res_name }} </option>
                                 {% endfor %}
                             </select>
@@ -139,14 +140,17 @@
                     {% for res in curr_res %}
                         <hr/>
                         <div class="row">
-                            {% for i in range(0, 5) %}
-                                <div class="col">{{res[i]}}</div>
-                            {% endfor %}
+                            <div class="col">{{res["hostname"]}}</div>
+                            <div class="col">{{res["username"]}}</div>
+                            <div class="col">{{res["name"]}}</div>
+                            <div class="col">{{res["begin_date"]}}</div>
+                            <div class="col">{{res["end_date"]}}</div>
+
                             <div class="col">
                                 {% if current_user.super_user == 1 %}
-                                    <button type="submit" class="cancelBtn" name="btncancel" value={{res[5]}}>Cancel</button>
-                                {% elif current_user.username == res[1] %}
-                                    <button type="submit" class="cancelBtn" name="btncancel" value={{res[5]}}>Cancel</button>
+                                    <button type="submit" class="cancelBtn" name="btncancel" value={{res["id"]}}>Cancel</button>
+                                {% elif current_user.username == res["username"] %}
+                                    <button type="submit" class="cancelBtn" name="btncancel" value={{res["id"]}}>Cancel</button>
                                 {% endif %}
                             </div>
                         </div>
@@ -178,11 +182,10 @@
             <form name="res_types_form" onsubmit="return false">
                 <div class="restype-table">
                     <!-- LOOP FOR EACH HOST IN THE DB -->
-                    {% for res_i in range(0, num_res_types) %}
-                        {% set res = res_types[res_i] %}
-                        {% set res_id = res[0] %}
-                        {% set res_name = res[1] %}
-                        {% set res_description = res[2] %}
+                    {% for res in res_types %}
+                        {% set res_id = res["id"] %}
+                        {% set res_name = res["name"] %}
+                        {% set res_description = res["description"] %}
                         <!-- <div class="row">
                             <div class="col header">ID</div>
                             <div class="col" name={{ res_id ~ "_id" }}>{{ res_id }}</div>

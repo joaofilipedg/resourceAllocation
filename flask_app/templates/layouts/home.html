@@ -25,9 +25,11 @@
                         {%for res in curr_res%}
                         <hr />
                         <div class="row">
-                            {%for i in range(0, 5)%}
-                            <div class="col">{{res[i]}}</div>
-                            {%endfor%}
+                            <div class="col">{{res["hostname"]}}</div>
+                            <div class="col">{{res["username"]}}</div>
+                            <div class="col">{{res["name"]}}</div>
+                            <div class="col">{{res["begin_date"]}}</div>
+                            <div class="col">{{res["end_date"]}}</div>
                             <div class="col">
                                 <button type="submit" class="cancelBtn" name="btncancel" value={{res[5]}}>Cancel</button>
                             </div>

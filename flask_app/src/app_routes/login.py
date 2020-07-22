@@ -6,32 +6,19 @@ from werkzeug.urls import url_parse
 from datetime import datetime
 
 from flask_app.src.global_stuff import DEBUG_MODE
-from flask_app.app import login_manager, dbldap
-from flask_app.src.ldap_auth import User, LoginForm
-from flask_app.src.sql_sqlalchemy import dbmain
-
+from flask_app.app import login_manager, db
+from flask_app.src.ldap_auth import LoginForm
+# from flask_app.src import models
+from flask_app.src.models import *
+from flask_app.src.models.sql_insert import insert_newEntry
+from flask_app.src.models.sql_query import get_fullTable
 
 from . import app_routes
-
-
 
 
 @login_manager.user_loader
 def load_user(id):
     return User.query.get(int(id))
-
-
-# @app_routes.before_request
-# def before_request():
-#     if request.url.startswith('http://'):
-#         url = request.url.replace('http://', 'https://', 1)
-#         code = 301
-#         return redirect(url, code=code)
-
-# @app_routes.before_request
-# def make_session_permanent():
-#     session.permanent = True
-#     app_routes.permanent_session_lifetime = timedelta(minutes=1)
 
 @app_routes.before_request
 def get_current_user():
@@ -77,6 +64,7 @@ def login():
         username = form.username.data
         password = form.password.data
 
+        log_args = {"app": current_app, "user": username}
 
         try:
             super_user = User.try_login(username, password)
@@ -85,15 +73,25 @@ def login():
             return render_template('layouts/login.html', form=form)
 
         print("login sucessfull")
-        user = User.query.filter_by(username=username).first()
-
+        user = get_fullTable(User, filter_col="username", filter_value=username, return_obj=True, log_args=log_args)
+        # user = User.query.filter_by(username=username).first()
+        print("1")
+        print(user)
         session.permanent = True # to allow for connection timeout after time defined in PERMANENT_SESSION_LIFETIME
 
         if not user:
-            user = User(username, super_user)
-            dbldap.session.add(user)
-            dbldap.session.commit()
-
+            print(username)
+            print(super_user)
+            user = insert_newEntry(User, {"username":username, "super_user":super_user}, log_args=log_args)
+            print("2")
+            print(user)
+            # user = User(username, super_user)
+            # db.session.add(user)
+            # db.session.commit()
+        else: 
+            user = user[0]
+            print("3")
+            print(user)
         # login_user(user, remember=form.remember_me.data)
         login_user(user)
         # flash('You have successfully logged in.', 'success')

@@ -36,7 +36,7 @@
                     <!-- LOOP FOR EACH HOST IN THE DB -->
                     {% for cpu_i in range(0, num_cpus) %}
                         {% set cpu = cpus[cpu_i] %}
-                        {% set cpu_id = cpu[0] %}
+                        {% set cpu_id = cpu["id"] %}
                         {% if cpu_id != 0 %}
                             <hr class="special-hr"/>
 
@@ -46,26 +46,26 @@
                             <div class="row">
                             {% endif %}
 
-                                <!-- LOOP ACROSS EACH ENTRY OF THE COMPONENT -->
-                                {% for j in range(2, 5) %}
-                                    <div class="col" name={{ cpu_id ~ "_" ~ j }}>{{ cpu[j] }}</div>
-                                {% endfor %}
+                            <!-- LOOP ACROSS EACH ENTRY OF THE COMPONENT -->
+                                <div class="col" name={{ cpu_id ~ "_name" }}>{{ cpu["name"] }}</div>
+                                <div class="col" name={{ cpu_id ~ "_gen" }}>{{ cpu["generation"] }}</div>
+                                <div class="col" name={{ cpu_id ~ "_manuf" }}>{{ cpu["manufacturer"] }}</div>
 
                                 <!-- TODO: ADD A FIELD TO CHECK IF COMPONENT IS ALLOCATED TO ANY HOST
                                 <div class="col" > ... </div>
                                  -->
 
-                                {% if current_user.super_user == 1 %}
-                                <!-- ONLY SHOW BUTTONS IF USER IS ADMIN -->
-                                    <!-- Edit Host Button -->
-                                    <div class="col">
-                                        <button type="submit" class="editBtn" name="btnedit" value={{cpu_id}}>Edit</button>
-                                    </div>
-                                    <!-- Remove Host Button-->
-                                    <div class="col">
-                                        <button type="submit" class="removeBtn" name="btnremove" value={{cpu_id}}>Remove</button>
-                                    </div>
-                                {% endif %}
+                            {% if current_user.super_user == 1 %}
+                            <!-- ONLY SHOW BUTTONS IF USER IS ADMIN -->
+                                <!-- Edit Host Button -->
+                                <div class="col">
+                                    <button type="submit" class="editBtn" name="btnedit" value={{cpu_id}}>Edit</button>
+                                </div>
+                                <!-- Remove Host Button-->
+                                <div class="col">
+                                    <button type="submit" class="removeBtn" name="btnremove" value={{cpu_id}}>Remove</button>
+                                </div>
+                            {% endif %}
                             </div>
                         {% endif %}
                     {% endfor %}
@@ -92,7 +92,7 @@
                     <!-- LOOP FOR EACH HOST IN THE DB -->
                     {% for gpu_i in range(0, num_gpus) %}
                         {% set gpu = gpus[gpu_i] %}
-                        {% set gpu_id = gpu[0] %}
+                        {% set gpu_id = gpu["id"] %}
                         <hr class="special-hr"/>
 
                         {% if current_user.super_user == 1 %}
@@ -101,10 +101,10 @@
                         <div class="row">
                         {% endif %}
 
-                            <!-- LOOP ACROSS EACH ENTRY OF THE COMPONENT -->
-                            {% for j in range(2, 5) %}
-                                <div class="col" name={{ gpu_id ~ "_" ~ j }}>{{ gpu[j] }}</div>
-                            {% endfor %}
+                        <!-- LOOP ACROSS EACH ENTRY OF THE COMPONENT -->
+                            <div class="col" name={{ gpu_id ~ "_name" }}>{{ gpu["name"] }}</div>
+                            <div class="col" name={{ gpu_id ~ "_gen" }}>{{ gpu["generation"] }}</div>
+                            <div class="col" name={{ gpu_id ~ "_manuf" }}>{{ gpu["manufacturer"] }}</div>
 
                             <!-- TODO: ADD A FIELD TO CHECK IF COMPONENT IS ALLOCATED TO ANY HOST
                             <div class="col" > ... </div> -->
@@ -145,7 +145,7 @@
                     <!-- LOOP FOR EACH HOST IN THE DB -->
                     {% for fpga_i in range(0, num_fpgas) %}
                         {% set fpga = fpgas[fpga_i] %}
-                        {% set fpga_id = fpga[0] %}
+                        {% set fpga_id = fpga["id"] %}
                         <hr class="special-hr"/>
 
                         {% if current_user.super_user == 1 %}
@@ -154,10 +154,10 @@
                         <div class="row">
                         {% endif %}
 
-                            <!-- LOOP ACROSS EACH ENTRY OF THE COMPONENT -->
-                            {% for j in range(2, 5) %}
-                                <div class="col" name={{ fpga_id ~ "_" ~ j }}>{{ fpga[j] }}</div>
-                            {% endfor %}
+                        <!-- LOOP ACROSS EACH ENTRY OF THE COMPONENT -->
+                            <div class="col" name={{ fpga_id ~ "_name" }}>{{ fpga["name"] }}</div>
+                            <div class="col" name={{ fpga_id ~ "_gen" }}>{{ fpga["generation"] }}</div>
+                            <div class="col" name={{ fpga_id ~ "_manuf" }}>{{ fpga["manufacturer"] }}</div>
 
                             <!-- TODO: ADD A FIELD TO CHECK IF COMPONENT IS ALLOCATED TO ANY HOST
                             <div class="col" > ... </div> -->

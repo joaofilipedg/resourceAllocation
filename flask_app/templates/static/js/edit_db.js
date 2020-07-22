@@ -1,6 +1,6 @@
 
-function fillSpanComponents(hostname, type, host_comps, comps, comp_ids) {
-    var name_aux = hostname + "_" + type;
+function fillSpanComponents(host_id, type, host_comps, comps, comp_ids) {
+    var name_aux = "host_" + host_id + "_" + type;
 
     if (type == "cpu") {
         host_comps = [host_comps];

@@ -2,7 +2,13 @@ from flask import render_template, request, redirect, url_for, current_app
 from flask_login import current_user, login_required
 from datetime import datetime
 
-from flask_app.src.sql_sqlalchemy import dbmain, CODE_CPU, CODE_GPU, CODE_FPGA
+# from flask_app.src.sql_sqlalchemy import dbmain, CODE_CPU, CODE_GPU, CODE_FPGA
+
+from flask_app.src.models import *
+from flask_app.src.models.sql_query import get_listComponents, get_fullListComponents
+from flask_app.src.models.sql_insert import insert_newEntry
+from flask_app.src.models.sql_update import update_configComponent
+from flask_app.src.models.sql_delete import del_component
 
 from . import app_routes
 
@@ -13,10 +19,11 @@ def edit_components():
     username = current_user.username
     log_args = {"app": current_app, "user": username}
 
-    list_cpus = dbmain.get_fullListComponents(CODE_CPU, log_args=log_args)
-    list_gpus = dbmain.get_fullListComponents(CODE_GPU, log_args=log_args)
-    list_fpgas = dbmain.get_fullListComponents(CODE_FPGA, log_args=log_args)
+    list_cpus = get_fullListComponents(CODE_CPU, log_args=log_args)
+    list_gpus = get_fullListComponents(CODE_GPU, log_args=log_args)
+    list_fpgas = get_fullListComponents(CODE_FPGA, log_args=log_args)
     print(list_cpus)
+
     return render_template('layouts/edit_components.html', cpus=list_cpus, num_cpus=len(list_cpus), gpus=list_gpus, num_gpus=len(list_gpus), fpgas=list_fpgas, num_fpgas=len(list_fpgas))
 
 # Add new component page (POST only)
@@ -26,22 +33,24 @@ def new_component():
     username = current_user.username
     log_args = {"app": current_app, "user": username}
 
-    list_components, _ = dbmain.get_listComponents(log_args=log_args)
+    dict_all_components = get_listComponents(log_args=log_args)
+    list_all_components = dict_all_components["name"]
         
-    print(list_components)
+    print(list_all_components)
 
     new_comp = {}
 
     # check if component with the same name is already registered
     new_comp["name"] = request.form["compname"]
-    if new_comp["name"] in list_components:
-        return "ERROR: Component {} is already registered!".format(new_comp["name"])
+    if new_comp["name"] in list_all_components:
+        flash("ERROR: Component {} is already registered!".format(new_comp["name"]))
+        return redirect(url_for('app_routes.edit_components', _external=True, _scheme='https'))
 
     new_comp["type"] = request.form["comptype"]
     new_comp["brand"] = request.form["compbrand"]
     new_comp["gen"] = request.form["compgen"]
 
-    dbmain.insert_newComponent(new_comp, log_args=log_args)
+    insert_newEntry(Component, new_comp, log_args=log_args)
 
     return redirect(url_for('app_routes.edit_components', _external=True, _scheme='https'))
 
@@ -53,7 +62,8 @@ def remove_component():
     log_args = {"app": current_app, "user": username}
 
     componentID = request.get_json().get("comp_id", "")
-    dbmain.del_component(componentID, log_args=log_args)
+    del_component(componentID, log_args=log_args)
+    
     return "OK"
 
 # Update specific component (change name, manufacturer or brand) (POST only)
@@ -66,9 +76,9 @@ def update_component():
     args = request.get_json()
     componentID = args.get("id", "")
     name = args.get("name", "")
-    brand = args.get("brand", "")
+    manufacturer = args.get("brand", "")
     gen = args.get("gen", "")
 
-    dbmain.update_configComponent(componentID, name, brand, gen, log_args=log_args)
+    update_configComponent(componentID, name, manufacturer, gen, log_args=log_args)
 
     return "OK"

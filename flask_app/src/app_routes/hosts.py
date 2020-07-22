@@ -2,8 +2,16 @@ from flask import render_template, request, redirect, url_for, current_app
 from flask_login import current_user, login_required
 from datetime import datetime
 
-import flask_app.src.sql_sqlalchemy as mydb
-from flask_app.src.sql_sqlalchemy import dbmain, CODE_CPU, CODE_GPU, CODE_FPGA
+# import flask_app.src.sql_sqlalchemy as mydb
+# from flask_app.src.sql_sqlalchemy import dbmain, CODE_CPU, CODE_GPU, CODE_FPGA
+
+from flask_app.src.models import *
+from flask_app.src.models.sql_query import get_fullListHosts, get_listComponents, get_listHostsComponents
+from flask_app.src.models.sql_insert import insert_newEntry
+from flask_app.src.models.sql_update import update_toggleEnableHost, update_configHost
+from flask_app.src.models.sql_delete import del_host
+from flask_app.src.models.aux_checks import check_hostStatusNextWeek
+
 
 from . import app_routes
 
@@ -14,32 +22,39 @@ def edit_hosts():
     username = current_user.username
     log_args = {"app": current_app, "user": username}
 
-    full_list_hosts = dbmain.get_fullListHosts(log_args=log_args)
+    full_list_hosts = get_fullListHosts(log_args=log_args)
+    print("BLAH")
     print(full_list_hosts)
 
-    list_cpus, list_cpu_ids = dbmain.get_listComponents(CODE_CPU, log_args=log_args)
-    list_gpus, list_gpu_ids = dbmain.get_listComponents(CODE_GPU, log_args=log_args)
-    list_fpgas, list_fpga_ids = dbmain.get_listComponents(CODE_FPGA, log_args=log_args)
+    dict_cpus = get_listComponents(CODE_CPU, log_args=log_args)
+    dict_gpus = get_listComponents(CODE_GPU, log_args=log_args)
+    dict_fpgas = get_listComponents(CODE_FPGA, log_args=log_args)
 
+    list_cpus = dict_cpus["name"]
+    list_cpu_ids = dict_cpus["id"]
+    list_gpus = dict_gpus["name"]
+    list_gpu_ids = dict_gpus["id"]
+    list_fpgas = dict_fpgas["name"]
+    list_fpga_ids = dict_fpgas["id"]
 
-    list_hostscomps = dbmain.get_listHostsComponents(log_args=log_args)
+    dict_hostgpus, dict_hostfpgas = get_listHostsComponents(log_args=log_args)
     
-    # create dictionary with components of each host (eg., dict_hostgpus["saturn"] = ["TitanX", "Titan XP"])
-    print(list_hostscomps)
-    dict_hostgpus = {host[0]: [] for host in full_list_hosts}
-    dict_hostfpgas = {host[0]: [] for host in full_list_hosts}
-    for entry in list_hostscomps:
-        if entry[1] == 1:
-            dict_hostgpus[entry[0]].append(entry[2])
-        else:
-            dict_hostfpgas[entry[0]].append(entry[2])
+    # # create dictionary with components of each host (eg., dict_hostgpus["saturn"] = ["TitanX", "Titan XP"])
+    # print(list_hostscomps)
+    # dict_hostgpus = {host[0]: [] for host in full_list_hosts}
+    # dict_hostfpgas = {host[0]: [] for host in full_list_hosts}
+    # for entry in list_hostscomps:
+    #     if entry[1] == 1:
+    #         dict_hostgpus[entry[0]].append(entry[2])
+    #     else:
+    #         dict_hostfpgas[entry[0]].append(entry[2])
     print(dict_hostgpus)
     print(dict_hostfpgas)
 
     # create dictionary with usage status of each host over the next week
     dict_hosts_usage = {}
     for host in full_list_hosts:
-        dict_hosts_usage[host[0]] = mydb.check_hostStatusNextWeek(host[0], log_args)
+        dict_hosts_usage[host["hostname"]] = check_hostStatusNextWeek(host["id"], log_args)
     print(dict_hosts_usage)
 
     return render_template('layouts/edit_hosts.html', hosts_usage=dict_hosts_usage, all_hostgpus=dict_hostgpus, all_hostfpgas=dict_hostfpgas, hosts=full_list_hosts, cpus=list_cpus, cpu_ids=list_cpu_ids, num_cpus=len(list_cpus), gpus=list_gpus, gpu_ids=list_gpu_ids, num_gpus=len(list_gpus), fpgas=list_fpgas, fpga_ids=list_fpga_ids, num_fpgas=len(list_fpgas))
@@ -51,10 +66,10 @@ def toggle_enable_host():
     username = current_user.username
     log_args = {"app": current_app, "user": username}
 
-    hostname = request.get_json().get("hostname", "")
-    print(hostname)
+    hostID = request.get_json().get("host_id", "")
+    print(hostID)
 
-    dbmain.toggle_enableHost(hostname, log_args=log_args)
+    update_toggleEnableHost(hostID, log_args=log_args)
     return "OK"
 
 # Remove specific Host (POST only)
@@ -64,10 +79,10 @@ def remove_host():
     username = current_user.username
     log_args = {"app": current_app, "user": username}
 
-    hostname = request.get_json().get("hostname", "")
-    print(hostname)
+    hostID = request.get_json().get("host_id", "")
+    print(hostID)
 
-    dbmain.del_host(hostname, log_args=log_args)
+    del_host(hostID, log_args=log_args)
     return "OK"
 
 # Update specific Host (change IP address or GPU/FPGA availability) (POST only)
@@ -78,6 +93,9 @@ def update_host():
     log_args = {"app": current_app, "user": username}
 
     args = request.get_json()
+    print("HEEEEEEE")
+    print(args)
+    hostID = int(args.get("id", ""))
     hostname = args.get("hostname", "")
     ipaddr = args.get("ip", "")
     cpu = int(args.get("cpu", "")[0])
@@ -92,7 +110,8 @@ def update_host():
     # print(fpga)
     optional_comps = {"gpu": gpu, "fpga": fpga}
     print(optional_comps)
-    dbmain.update_configHost(hostname=hostname, ipaddr=ipaddr, cpu=cpu, optional_comps=optional_comps, log_args=log_args)
+
+    update_configHost(hostID, hostname, ipaddr, cpu, optional_comps, log_args=log_args)
 
     return "OK"
 
@@ -103,36 +122,36 @@ def new_host():
     username = current_user.username
     log_args = {"app": current_app, "user": username}
 
-    full_list_hosts = dbmain.get_fullListHosts(log_args=log_args)
-    list_hostnames = [i[0] for i in full_list_hosts]
-    list_ipaddrs = [i[1] for i in full_list_hosts]
+    full_list_hosts = get_fullListHosts(log_args=log_args)
+    list_hostnames = [i["hostname"] for i in full_list_hosts]
+    list_ipaddrs = [i["ip"] for i in full_list_hosts]
     # print(list_hostnames)
     # print(list_ipaddrs)
 
     new_host = {}
-
-    # check if hostname is already registered
     new_host["hostname"] = request.form["hostname"]
+    
+    # check if hostname is already registered
     if new_host["hostname"] in list_hostnames:
-        return "ERROR: Host {} is already registered!".format(new_host["hostname"])
-
+        flash("ERROR: Host {} is already registered!".format(new_host["hostname"]))
+        return redirect(url_for('app_routes.edit_hosts', _external=True, _scheme='https'))
+    
+    new_host["ipaddr"] = request.form["ipaddr"]
     
     # check if ipaddr is already in use
-    new_host["ipaddr"] = request.form["ipaddr"]
-    # print(type(new_host["ipaddr"]))
     if int(new_host["ipaddr"]) in list_ipaddrs:
-        return "ERROR: IP address X.X.X.{} is already being used!".format(new_host["ipaddr"])
-
+        flash("ERROR: IP address X.X.X.{} is already being used!".format(new_host["ipaddr"]))
+        return redirect(url_for('app_routes.edit_hosts', _external=True, _scheme='https'))
 
     new_host["cpu"] = request.form["cpu"]
     
     # confirm if cpuID is valid
-    _, list_cpu_ids = dbmain.get_listComponents(CODE_CPU, log_args=log_args)
-    # print(list_cpu_ids)
-
+    dict_cpus = get_listComponents(CODE_CPU, log_args=log_args)
+    list_cpu_ids = dict_cpus["id"]
     if int(new_host["cpu"]) not in list_cpu_ids:
-        return "ERROR: CPU ID is not valid!"
-    
+        flash("ERROR: CPU ID is not valid!")
+        return redirect(url_for('app_routes.edit_hosts', _external=True, _scheme='https'))
+
     form_keys = request.form.keys()
     
     # confirms if there was a GPU selected
@@ -140,22 +159,27 @@ def new_host():
         new_host["gpu"] = request.form.getlist("hasgpu") #needs to get the list, because there could be more than 1
         
         # confirm if all gpuIDs are valid
-        _, list_gpu_ids = dbmain.get_listComponents(CODE_GPU, log_args=log_args)
+        dict_gpus = get_listComponents(CODE_GPU, log_args=log_args)
+        list_gpu_ids = dict_gpus["id"]
         for new_host_gpu in new_host["gpu"]:
             if int(new_host_gpu) not in list_gpu_ids:
-                return "ERROR: GPU ID is not valid!"
+                flash( "ERROR: GPU ID is not valid!")
+                return redirect(url_for('app_routes.edit_hosts', _external=True, _scheme='https'))
 
+    # confirms if there was an FPGA selected
     if "hasfpga" in form_keys:
         new_host["fpga"] = request.form.getlist("hasfpga")
 
         # confirm if all fpgaIDs are valid
-        _, list_fpga_ids = dbmain.get_listComponents(CODE_FPGA, log_args=log_args)
+        dict_fpgas = get_listComponents(CODE_FPGA, log_args=log_args)
+        list_fpga_ids = dict_fpgas["id"]
         for new_host_fpga in new_host["fpga"]:
             if int(new_host_fpga) not in list_fpga_ids:
-                return "ERROR: FPGA ID is not valid!"
+                flash("ERROR: FPGA ID is not valid!")
+                return redirect(url_for('app_routes.edit_hosts', _external=True, _scheme='https'))
 
+    # EVERYTHING IS VALID
     print(new_host)
-    
-    dbmain.insert_newHost(new_host, log_args=log_args)
+    insert_newEntry(Host, new_host, log_args=log_args)
 
     return redirect(url_for('app_routes.edit_hosts', _external=True, _scheme='https'))

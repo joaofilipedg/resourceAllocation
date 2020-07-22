@@ -21,20 +21,15 @@ res_types_6 = "Reserved GPU and FPGA";
 editdb_first_h = true;
 editdb_edit = false;
 editdb_edit_host = "";
+editdb_old_name = "";
 editdb_old_ip = "";
 editdb_old_cpu = "";
 editdb_old_gpu = "";
 editdb_old_fpga = "";
-editdb_idx_ip = "1";
-editdb_idx_cpu = "2";
-editdb_idx_gpu = "3";
-editdb_idx_fpga = "4";
-editdb_idx_enabled = "5";
 
 editdb_list_selects_cpu = {};
 editdb_list_selects_gpu = {};
 editdb_list_selects_fpga = {};
-
 
 editcomp_first_h = true;
 editcomp_edit = false;

@@ -2,7 +2,7 @@ import ldap, sys
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, BooleanField
 from wtforms.validators import DataRequired
-from flask_app.app import dbldap, app, login_manager
+from flask_app.app import app
 # from wtforms import StringField, SubmitField, IntegerField
 
 SUPER_GROUPS = ["admins", "trust admins", "editors"]
@@ -42,50 +42,65 @@ def get_ldap_connection():
     return conn
 
 
-class User(dbldap.Model):
-    id = dbldap.Column(dbldap.Integer, primary_key=True)
-    username = dbldap.Column(dbldap.String(100))
-    super_user = dbldap.Column(dbldap.Integer)
+def user_try_login(username, password):
+    conn = get_ldap_connection()
+    conn.simple_bind_s('uid=%s,cn=users,cn=accounts,dc=inesc-id,dc=pt' % username, password)
 
-    def __init__(self, username, super_user):
-        self.username = username
-        if super_user:
-            self.super_user = 1
-        else:
-            self.super_user =0
+    # get the groups of the user
+    search_filter='(|(&(objectClass=*)(member=uid={},cn=users,cn=accounts,dc=inesc-id,dc=pt)))'.format(username)
+    results = conn.search_s("dc=inesc-id,dc=pt", ldap.SCOPE_SUBTREE, search_filter, ['cn',])
+    super_user = False
+    for group in results:
+        group_name = group[1]["cn"][0].decode("utf-8")
+        if group_name in SUPER_GROUPS:
+            super_user = True
+            break
+    return super_user
 
-    @staticmethod
-    def try_login(username, password):
-        conn = get_ldap_connection()
-        conn.simple_bind_s('uid=%s,cn=users,cn=accounts,dc=inesc-id,dc=pt' % username, password)
+# class User(dbldap.Model):
+#     id = dbldap.Column(dbldap.Integer, primary_key=True)
+#     username = dbldap.Column(dbldap.String(100))
+#     super_user = dbldap.Column(dbldap.Integer)
+
+#     def __init__(self, username, super_user):
+#         self.username = username
+#         if super_user:
+#             self.super_user = 1
+#         else:
+#             self.super_user =0
+
+#     @staticmethod
+#     def try_login(username, password):
+#         conn = get_ldap_connection()
+#         conn.simple_bind_s('uid=%s,cn=users,cn=accounts,dc=inesc-id,dc=pt' % username, password)
         
-        # get the groups of the user
-        search_filter='(|(&(objectClass=*)(member=uid={},cn=users,cn=accounts,dc=inesc-id,dc=pt)))'.format(username)
-        results = conn.search_s("dc=inesc-id,dc=pt", ldap.SCOPE_SUBTREE, search_filter, ['cn',])
-        super_user = False
-        for group in results:
-            group_name = group[1]["cn"][0].decode("utf-8")
-            if group_name in SUPER_GROUPS:
-                super_user = True
-                break
-        return super_user
+#         # get the groups of the user
+#         search_filter='(|(&(objectClass=*)(member=uid={},cn=users,cn=accounts,dc=inesc-id,dc=pt)))'.format(username)
+#         results = conn.search_s("dc=inesc-id,dc=pt", ldap.SCOPE_SUBTREE, search_filter, ['cn',])
+#         super_user = False
+#         for group in results:
+#             group_name = group[1]["cn"][0].decode("utf-8")
+#             if group_name in SUPER_GROUPS:
+#                 super_user = True
+#                 break
+#         return super_user
 
 
-    def is_authenticated(self):
-        return True
+#     def is_authenticated(self):
+#         return True
 
-    def is_active(self):
-        return True
+#     def is_active(self):
+#         return True
 
-    def is_anonymous(self):
-        return False
+#     def is_anonymous(self):
+#         return False
 
-    def get_id(self):
-        return str(self.id)
+#     def get_id(self):
+#         return str(self.id)
 
-@login_manager.user_loader
-def load_user(id):
-    return User.query.get(int(id))
+# @login_manager.user_loader
+# def load_user(id):
+#     return User.query.get(int(id))
 
 class LoginForm(FlaskForm):
     # username = TextField('Username', [InputRequired()])

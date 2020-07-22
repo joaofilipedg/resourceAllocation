@@ -17,8 +17,8 @@ class Config(object):
 
 
     # SQLALCHEMY STUFF
-    SQLALCHEMY_DATABASE_URI             = "sqlite:////tmp/test.db"
-    # SQLALCHEMY_DATABASE_URI             = os.environ.get("DATABASE_URL") or "sqlite:///" + os.path.join(basedir, "../sqlite/db/app.db")
+    # SQLALCHEMY_DATABASE_URI             = "sqlite:////tmp/test.db"
+    SQLALCHEMY_DATABASE_URI             = os.environ.get("DATABASE_URL") or "sqlite:///" + os.path.join(basedir, "../sqlite/db/app.db")
     SQLALCHEMY_TRACK_MODIFICATIONS      = False
     SECRET_KEY                          = os.environ.get("SECRET_KEY") or b'\xcc\x12q\x9c\xca\xaa\xa18\xe3o\x99\xef\xe0~H\x19'
 
@@ -46,3 +46,5 @@ class Config(object):
         WWW_LOG_NAME                    = "www.log"
         LOG_MAX_BYTES                   = 100_000_000  # 100MB in bytes
         LOG_COPIES                      = 5
+
+

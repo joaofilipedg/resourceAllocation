@@ -1,5 +1,5 @@
-function send_ajax_host(hostname, page) {
-    var data = { "hostname": hostname };
+function send_ajax_host(host_id, page) {
+    var data = { "host_id": host_id };
     $.ajax({
         url: page,
         method: "POST",
@@ -18,14 +18,14 @@ function send_ajax_host(hostname, page) {
 }
 
 
-function toggleEnableHost(hostname) {
-    return send_ajax_host(hostname, `/toggle_host`);
+function toggleEnableHost(host_id) {
+    return send_ajax_host(host_id, `/toggle_host`);
 }
 
-function removeHost(hostname) {
+function removeHost(host_id) {
     var sure = window.confirm("Are you sure you want to remove this host?\n\nWarning: This will remove all reservations associated with this host.");
     if (sure) {
-        return send_ajax_host(hostname, `/remove_host`);
+        return send_ajax_host(host_id, `/remove_host`);
     } else {
         return false;
     }
@@ -33,56 +33,74 @@ function removeHost(hostname) {
 
 // Allows users to edit the setup of a host
 function editHost(btn) {
-    hostname = btn.value;
+    host_id = btn.value;
     // Checks if there was already a host being edited (only allowed 1 at a time)
     if (!(editdb_edit)) {
 
         // some global variables
         editdb_edit = true;
-        editdb_edit_host = hostname;
+        editdb_edit_host = host_id;
 
         // change button
         btn.style.background = "#268bd2";
         btn.innerHTML = "Confirm";
 
         // fields that can be edited
-        var ip = document.getElementsByName(hostname + "_" + editdb_idx_ip)[0];
+        var name = document.getElementsByName("host_" + host_id + "_name")[0];
+        var ip = document.getElementsByName("host_" + host_id + "_ipaddr")[0];
 
 
         // saves previous values
+        editdb_old_name = name.innerText;
         editdb_old_ip = ip.innerText;
-        editdb_old_cpu = getValues(hostname + "_cpu");
-        editdb_old_gpu = getValues(hostname + "_gpu");
-        editdb_old_fpga = getValues(hostname + "_fpga");
+        editdb_old_cpu = getValues("host_" + host_id + "_cpu");
+        editdb_old_gpu = getValues("host_" + host_id + "_gpu");
+        editdb_old_fpga = getValues("host_" + host_id + "_fpga");
 
+        console.log(editdb_old_name);
         console.log(editdb_old_ip);
         console.log(editdb_old_cpu);
         console.log(editdb_old_gpu);
         console.log(editdb_old_fpga);
 
+        // swaps the hostname field with an input field
+        // first remove clickable action and styling
+        document.getElementById("host_" + host_id + "_name").classList.remove("clickable");
+        $("#host_" + host_id + "_name").unbind("click");
+        // change element to input
+        var input_name = document.createElement('input');
+        input_name.type = 'text';
+        input_name.id = "myInputname";
+        input_name.value = name.innerHTML;
+        name.innerHTML = '';
+        name.appendChild(input_name);
+        
         // swaps the ip field with an input field
-        var input = document.createElement('input');
-        input.type = 'text';
-        input.id = "myInputip";
-        input.value = ip.innerHTML;
+        // change element to input
+        var input_ip = document.createElement('input');
+        input_ip.type = 'text';
+        input_ip.id = "myInputip";
+        input_ip.value = ip.innerHTML;
         ip.innerHTML = '';
-        ip.appendChild(input);
+        ip.appendChild(input_ip);
 
         // enables the SELECTs
-        editdb_list_selects_cpu[hostname].enable();
-        editdb_list_selects_gpu[hostname].enable();
-        editdb_list_selects_fpga[hostname].enable();
+        editdb_list_selects_cpu[host_id].enable();
+        editdb_list_selects_gpu[host_id].enable();
+        editdb_list_selects_fpga[host_id].enable();
 
         return true;
     } else {
-        if (hostname == editdb_edit_host) {
+        if (host_id == editdb_edit_host) {
             // confirm was pressed
+            var name_input = document.getElementById("myInputname");
             var ip_input = document.getElementById("myInputip");
 
+            var selected_name = name_input.value;
             var selected_ip = ip_input.value;
-            var selected_cpu = getValues(hostname + "_cpu");
-            var selected_gpu = getValues(hostname + "_gpu");
-            var selected_fpga = getValues(hostname + "_fpga");
+            var selected_cpu = getValues("host_" + host_id + "_cpu");
+            var selected_gpu = getValues("host_" + host_id + "_gpu");
+            var selected_fpga = getValues("host_" + host_id + "_fpga");
 
             console.log(editdb_old_ip);
             console.log(selected_ip);
@@ -94,9 +112,9 @@ function editHost(btn) {
             console.log(editdb_old_fpga);
 
             // Check if there was any change made
-            if (selected_ip != editdb_old_ip || selected_cpu != editdb_old_cpu || selected_gpu != editdb_old_gpu || selected_fpga != editdb_old_fpga) {
+            if (selected_name != editdb_old_name || selected_ip != editdb_old_ip || selected_cpu != editdb_old_cpu || selected_gpu != editdb_old_gpu || selected_fpga != editdb_old_fpga) {
                 // Changes were made, need to be updated in the DB
-                var data = { "hostname": hostname, "ip": selected_ip, "cpu": selected_cpu, "gpu": selected_gpu, "fpga": selected_fpga};
+                var data = { "id": host_id, "hostname": selected_name, "ip": selected_ip, "cpu": selected_cpu, "gpu": selected_gpu, "fpga": selected_fpga};
                 $.ajax({
                     url: "/update_host",
                     method: "POST",
@@ -113,10 +131,12 @@ function editHost(btn) {
                 return true;
             } else {
                 // No changes were made
-                var ip = document.getElementsByName(hostname + "_" + editdb_idx_ip)[0];
-                var cpu = document.getElementsByName(hostname + "_" + editdb_idx_cpu)[0];
-                var gpu = document.getElementsByName(hostname + "_" + editdb_idx_gpu)[0];
-                var fpga = document.getElementsByName(hostname + "_" + editdb_idx_fpga)[0];
+                var name = document.getElementsByName("host_" + host_id + "_name")[0];
+                var ip = document.getElementsByName("host_" + host_id + "_ipaddr")[0];
+                var cpu = document.getElementsByName("host_" + host_id + "_cpu")[0];
+                var gpu = document.getElementsByName("host_" + host_id + "_gpu")[0];
+                var fpga = document.getElementsByName("host_" + host_id + "_fpga")[0];
+                name.innerHTML = editdb_old_name;
                 ip.innerHTML = editdb_old_ip;
                 cpu.innerHTML = editdb_old_cpu;
                 gpu.innerHTML = editdb_old_gpu;
@@ -129,6 +149,7 @@ function editHost(btn) {
                 // Reset global variables
                 editdb_edit = false;
                 editdb_edit_host = "";
+                editdb_old_name = "";
                 editdb_old_ip = "";
                 editdb_old_cpu = "";
                 editdb_old_gpu = "";
@@ -214,9 +235,9 @@ function editComponent(btn) {
         btn.innerHTML = "Confirm";
 
         // fields that can be edited
-        var name = document.getElementsByName(comp_id + "_" + 2)[0];
-        var gen = document.getElementsByName(comp_id + "_" + 3)[0];
-        var brand = document.getElementsByName(comp_id + "_" + 4)[0];
+        var name = document.getElementsByName(comp_id + "_name")[0];
+        var gen = document.getElementsByName(comp_id + "_gen")[0];
+        var brand = document.getElementsByName(comp_id + "_manuf")[0];
 
         // saves previous values
         editcomp_old_name = name.innerText;
@@ -283,9 +304,9 @@ function editComponent(btn) {
                 return true;
             } else {
                 // No changes were made
-                var name = document.getElementsByName(comp_id + "_" + 2)[0];
-                var gen = document.getElementsByName(comp_id + "_" + 3)[0];
-                var brand = document.getElementsByName(comp_id + "_" + 4)[0];
+                var name = document.getElementsByName(comp_id + "_name")[0];
+                var gen = document.getElementsByName(comp_id + "_gen")[0];
+                var brand = document.getElementsByName(comp_id + "_manuf")[0];
 
                 name.innerHTML = editcomp_old_name;
                 gen.innerHTML = editcomp_old_gen;
@@ -333,9 +354,9 @@ function verifyNewComponent() {
     }
 }
 
-function createCustomSelects(hostname, type, items, comps, comp_ids, global_list) {
-    var name_aux = hostname + "_" + type;
-
+function createCustomSelects(host_id, type, items, comps, comp_ids, global_list) {
+    var name_aux = "host_" + host_id + "_" + type;
+    // console.log(name_aux);
     // add custom multiselect
     if (type == "cpu") {
         var select_aux = new vanillaSelectBox("#" + name_aux, {
@@ -357,7 +378,7 @@ function createCustomSelects(hostname, type, items, comps, comp_ids, global_list
     select_aux.disable();
 
     // add to global list of selects
-    global_list[hostname] = select_aux;
+    global_list[host_id] = select_aux;
 
     addToolip(name_aux, comp_ids, comps);
 }

@@ -42,3 +42,21 @@ python -c 'import os; print(os.urandom(16))'
 ```bash
 gunicorn --bind 0.0.0.0:65010  wsgi:app --workers 1
 ```
+
+### Changes to the Database
+
+* Change the in ```models.py```.
+* Use flask-migrate to update the database:
+
+    * Create scripts for migration:   
+        ```bash
+        sh migrate_db.sh migrate <migration message>
+        ```
+    * Update the database using the new scripts:
+        ```bash
+        sh migrate_db.sh upgrade
+        ```
+    * It is also possible to go back to a previous version of the database using downgrage:
+        ```bash
+        sh migrate_db.sh downgrade
+        ```
