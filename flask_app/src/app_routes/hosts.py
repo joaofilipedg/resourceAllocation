@@ -2,8 +2,7 @@ from flask import render_template, request, redirect, url_for, current_app
 from flask_login import current_user, login_required
 from datetime import datetime
 
-# import flask_app.src.sql_sqlalchemy as mydb
-# from flask_app.src.sql_sqlalchemy import dbmain, CODE_CPU, CODE_GPU, CODE_FPGA
+from flask_app.src.custom_logs import BAD_NEWENTRY_STR, write_log_exception, write_log_warning
 
 from flask_app.src.models import *
 from flask_app.src.models.sql_query import get_fullListHosts, get_listComponents, get_listHostsComponents
@@ -37,16 +36,6 @@ def edit_hosts():
 
     dict_hostgpus, dict_hostfpgas = get_listHostsComponents(log_args=log_args)
     
-    # # create dictionary with components of each host (eg., dict_hostgpus["saturn"] = ["TitanX", "Titan XP"])
-    # print(list_hostscomps)
-    # dict_hostgpus = {host[0]: [] for host in full_list_hosts}
-    # dict_hostfpgas = {host[0]: [] for host in full_list_hosts}
-    # for entry in list_hostscomps:
-    #     if entry[1] == 1:
-    #         dict_hostgpus[entry[0]].append(entry[2])
-    #     else:
-    #         dict_hostfpgas[entry[0]].append(entry[2])
-
     # create dictionary with usage status of each host over the next week
     dict_hosts_usage = {}
     for host in full_list_hosts:
@@ -117,6 +106,7 @@ def new_host():
     
     # check if hostname is already registered
     if new_host["hostname"] in list_hostnames:
+        write_log_warning("{template_warning}: Host {hostname} is already registered".format(template_warning=BAD_NEWENTRY_STR.format(entry="host", username=username), hostname=new_host["hostname"]))
         flash("ERROR: Host {} is already registered!".format(new_host["hostname"]))
         return redirect(url_for('app_routes.edit_hosts', _external=True, _scheme='https'))
     
@@ -124,6 +114,7 @@ def new_host():
     
     # check if ipaddr is already in use
     if int(new_host["ip"]) in list_ipaddrs:
+        write_log_warning("{template_warning}: IP address X.X.X.{ipaddr} is already being used".format(template_warning=BAD_NEWENTRY_STR.format(entry="host", username=username), ipaddr=new_host["ip"]))
         flash("ERROR: IP address X.X.X.{} is already being used!".format(new_host["ip"]))
         return redirect(url_for('app_routes.edit_hosts', _external=True, _scheme='https'))
 
@@ -133,6 +124,7 @@ def new_host():
     dict_cpus = get_listComponents(CODE_CPU, log_args=log_args)
     list_cpu_ids = dict_cpus["id"]
     if int(new_host["cpu"]) not in list_cpu_ids:
+        write_log_warning("{template_warning}: CPU id ({cpuID}) is not valid".format(template_warning=BAD_NEWENTRY_STR.format(entry="host", username=username), cpuID=new_host["cpu"]))
         flash("ERROR: CPU ID is not valid!")
         return redirect(url_for('app_routes.edit_hosts', _external=True, _scheme='https'))
 
@@ -147,6 +139,7 @@ def new_host():
         list_gpu_ids = dict_gpus["id"]
         for new_host_gpu in new_host["gpu"]:
             if int(new_host_gpu) not in list_gpu_ids:
+                write_log_warning("{template_warning}: GPU id ({gpuID}) is not valid".format(template_warning=BAD_NEWENTRY_STR.format(entry="host", username=username), gpuID=new_host_gpu))
                 flash( "ERROR: GPU ID is not valid!")
                 return redirect(url_for('app_routes.edit_hosts', _external=True, _scheme='https'))
     else:
@@ -161,6 +154,7 @@ def new_host():
         list_fpga_ids = dict_fpgas["id"]
         for new_host_fpga in new_host["fpga"]:
             if int(new_host_fpga) not in list_fpga_ids:
+                write_log_warning("{template_warning}: FPGA id ({fpgaID}) is not valid".format(template_warning=BAD_NEWENTRY_STR.format(entry="host", username=username), fpgaID=new_host_fpga))
                 flash("ERROR: FPGA ID is not valid!")
                 return redirect(url_for('app_routes.edit_hosts', _external=True, _scheme='https'))
     else:

@@ -6,6 +6,7 @@ from flask_app.src.global_stuff import DEBUG_MODE
 LOG_UDPATE_FORMAT_STR = "'{}'->'{}'"
 LOG_UDPATE_FORMAT = "{}->{}"
 
+BAD_NEWENTRY_STR = "Attempt to create a conflicting {entry} by user '{username}':"
 
 """
 Based on: https://github.com/tenable/flask-logging-demo
@@ -135,3 +136,9 @@ def write_log_exception(error):
     else:
         print(error)
     return -1
+
+def write_log_warning(message):
+    if not DEBUG_MODE:
+        logging.warning(message)
+    else:
+        print(message)

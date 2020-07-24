@@ -3,7 +3,8 @@ from flask_login import current_user, login_required
 from datetime import datetime
 
 from flask_app.app import scheduler
-# import flask_app.src.sql_sqlalchemy as mydb
+from flask_app.src.custom_logs import BAD_NEWENTRY_STR, write_log_exception, write_log_warning
+from flask_app.src.global_stuff import DEBUG_MODE
 from flask_app.src.models import *
 from flask_app.src.models.sql_query import get_fullListHosts, get_fullListResTypes, get_listCurrentReservations, get_listUsers, get_entryObject, get_idFromUsername
 from flask_app.src.models.sql_insert import insert_newEntry
@@ -22,29 +23,17 @@ def reservations():
 
     preselected_host = "nothing"
     if request.method == 'POST':
-        print(request.form)
         preselected_host = request.form["host"]
 
     # get list of enabled hosts in the database
     list_hosts = get_fullListHosts(enabled=True, log_args=log_args)
-    print(list_hosts)
 
     # get full list of reservation types in the database
     list_restypes = get_fullListResTypes(log_args=log_args)
-    print(list_restypes)
-    # print(list_restypes_ids)
-    
-    # list_freehosts = dbmain.get_listFreeHosts(log_args=log_args)
-    # print(list_freehosts)
-    list_freehosts = []
-
-    # log_args = {"app": current_app, "user": current_user.username}
 
     # get list of current reservations (all users) in the database
     list_res = get_listCurrentReservations(log_args=log_args)
-    print(list_res)
 
-    print("YELLOW:'{}'".format(preselected_host))
     return render_template('layouts/reservations.html', presel_host=preselected_host, hosts=list_hosts, res_types=list_restypes, curr_res=list_res)
 
 # Add new reservation page (POST only)
@@ -56,23 +45,14 @@ def new_reservation():
 
     # get list of users in the database
     list_users = get_listUsers(log_args=log_args)
-    username = request.form["username"]
     
     userID = get_idFromUsername(username)
 
     new_reservation = {}
     new_reservation["userID"] = userID
-    # TODO: THIS CODE WAS REMOVED BECAUSE THIS SHOULD BE IMPOSSIBLE NOW WITH THE SINGLE DB, RECHECK IF IT WORKS
-    # # check if user already exists in the database
-    # if new_reservation["user"] not in list_users:
-    #     # if not, needs to create user (this assumes the web app already authenticated the user)
-    #     dbmain.insert_newUser(new_reservation["user"], log_args=log_args)
-    #     # If web app is not authenticating user, it should return an error
-    #     # return "ERROR: User '{}' does not exist!".format(new_reservation["user"])
 
     # Get the rest of the form fields
     new_reservation["hostID"] = int(request.form["host"])
-    # new_reservation["host"] = request.form["host"]
     new_reservation["reservation_type"] = int(request.form["res_type"])
     datetimes = request.form["datetimes"]
     datetimes = datetimes.split(" - ")
@@ -83,6 +63,10 @@ def new_reservation():
     now = datetime.now().strftime("%Y-%m-%d %H:%M")
     if new_reservation["end_date"] <= now:
         flash("ERROR: Reservation end date is already in the past ({})!".format(new_reservation["end_date"]))
+        
+
+        write_log_warning("{template_warning}: Reservation end date is already in the past ({end_date})".format(template_warning=BAD_NEWENTRY_STR.format(entry="reservation", username=username), end_date=new_reservation["end_date"]))
+
         return redirect(url_for('app_routes.reservations', _external=True, _scheme='https'))
     
     # Checks for conflicts (Return True if there is a conflict)
@@ -90,18 +74,20 @@ def new_reservation():
     if not conflict:
         # Add reservation to DB
         new_res_obj = insert_newEntry(Reservation, new_reservation, log_args=log_args)
-        if new_res_obj != -1:
+        try:
             resID = new_res_obj.id
 
             # Create new trigger to end reservation at the end date
             scheduler.add_job(func=timed_removeReservation, trigger="date", run_date=new_reservation["end_date"], args=[resID], id='j'+str(resID), misfire_grace_time=7*24*60*60)
-        else:
+        
+        except Exception as e:
+            write_log_exception(e)
             flash("ERROR: Something went wrong.")
+    
     else:
         flash("ERROR: {}".format(conflict_str))
+
     return redirect(url_for('app_routes.reservations', _external=True, _scheme='https'))
-        # return redirect(url_for('app_routes.reservations', _external=True, _scheme='https'))
-        # return "ERROR: {}".format(conflict_str)
         
 # Cancel reservation (POST only)
 @app_routes.route('/cancel_reservation', methods=["POST"])
@@ -111,12 +97,9 @@ def cancel_reservation():
     log_args = {"app": current_app, "user": username}
 
     resID = request.get_json().get("res_id", "")
-    print(resID)
 
     # get database entry before removing
     res_obj = get_entryObject(Reservation, resID, log_args=log_args)
-    print("ASDASDHASD")
-    print(res_obj)
 
     # remove the entry from the db
     manual_removeReservation(res_obj, final=True, log_args=log_args)

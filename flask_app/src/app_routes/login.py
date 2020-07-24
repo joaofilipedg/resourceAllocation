@@ -8,7 +8,6 @@ from datetime import datetime
 from flask_app.src.global_stuff import DEBUG_MODE
 from flask_app.app import login_manager, db
 from flask_app.src.ldap_auth import LoginForm
-# from flask_app.src import models
 from flask_app.src.models import *
 from flask_app.src.models.sql_insert import insert_newEntry
 from flask_app.src.models.sql_query import get_fullTable
@@ -55,12 +54,8 @@ def login():
         flash('You are already logged in.', 'success')
         return redirect(url_for('app_routes.home', _external=True, _scheme='https'))
 
-    # form = LoginForm(request.form)
     form = LoginForm()
     if form.validate_on_submit():
-    # if request.method == 'POST' and form.validate():
-        # username = request.form.get('username')
-        # password = request.form.get('password')
         username = form.username.data
         password = form.password.data
 
@@ -72,43 +67,38 @@ def login():
             flash('Invalid username or password. Please try again.', 'danger')
             return render_template('layouts/login.html', form=form)
 
-        print("login sucessfull")
+        if not DEBUG_MODE:
+            logging.info("Log in by user '{}'".format(username))
+        else:
+            print("Log in by user '{}'".format(username))
+
         user = get_fullTable(User, filter_col="username", filter_value=username, return_obj=True, log_args=log_args)
-        # user = User.query.filter_by(username=username).first()
-        print("1")
-        print(user)
+
         session.permanent = True # to allow for connection timeout after time defined in PERMANENT_SESSION_LIFETIME
 
         if not user:
-            print(username)
-            print(super_user)
             user = insert_newEntry(User, {"username":username, "super_user":super_user}, log_args=log_args)
-            print("2")
-            print(user)
-            # user = User(username, super_user)
-            # db.session.add(user)
-            # db.session.commit()
         else: 
             user = user[0]
-            print("3")
-            print(user)
-        # login_user(user, remember=form.remember_me.data)
+
         login_user(user)
-        # flash('You have successfully logged in.', 'success')
 
         next_page = request.args.get('next')
         if not next_page or url_parse(next_page).netloc != '':
             next_page = url_for('app_routes.home', _external=True, _scheme='https')
-        return redirect(next_page)
 
-    # if form.errors:
-    #     flash(form.errors, 'danger')
+        return redirect(next_page)
 
     return render_template('layouts/login.html', form=form)
 
 @app_routes.route('/logout')
 @login_required
 def logout():
+    if not DEBUG_MODE:
+        logging.info("Log out by user '{}'".format(current_user.username))
+    else:
+        print("Log out by user '{}'".format(current_user.username))
+        
     logout_user()
     return redirect(url_for('app_routes.login', _external=True, _scheme='https'))
 
