@@ -12,7 +12,9 @@ from flask_app.src.models.sql_query import get_listReservationsHost
 # (Return True if there is a conflict)
 def check_conflictsNewReservation(new_res, log_args={}):    
     list_res = get_listReservationsHost(new_res["hostID"], log_args=log_args)
-
+    
+    conflict = False
+    
     for res in list_res:
         # Check if there is any intersection of the timeslot
         if (new_res["end_date"] <= res["begin_date"]) or (new_res["begin_date"] >= res["end_date"]):
@@ -29,38 +31,52 @@ def check_conflictsNewReservation(new_res, log_args={}):
 
             # if either of the reservations (old conflicting one or new one) is of type 1 (RESERVED FULL)
             # conflict_res = "<br/><br/>Conflicting reservation (reservationID, username, hostname, reservation_type, begin_date, end_date):<br/>    {}".format(res)
-            conflict_res = " Conflicting reservation (reservationID, username, hostname, reservation_type, begin_date, end_date): {}".format(res)
-            if (res["reservation_type"] == 1) or (int(new_res["res_type"]) == 1):
+            if (res["reservation_type"] == 1) or (int(new_res["reservation_type"]) == 1):
                 error_str = "New reservation conflicts with existing reservation. (One of them is of type 'RESERVED FULL SYSTEM')"
-                print("\t{}".format(error_str))
-                return True, error_str+conflict_res
+                conflict = True
+                break
             
             # if both reservations (old conflicting one and new one) are locking the FPGA (RESERVED FPGA)
-            if (res["reservation_type"] == 2) and (int(new_res["res_type"]) == 2):
+            if (res["reservation_type"] == 2) and (int(new_res["reservation_type"]) == 2):
                 error_str = "New reservation conflicts with existing reservation. (Both of them are of type 'RESERVED FPGA')"
-                print("\t{}".format(error_str))
-                return True, error_str+conflict_res
+                conflict = True
+                break
             
             # if both reservations (old conflicting one and new one) are locking the GPU (RESERVED GPU)
-            if (res["reservation_type"] == 3) and (int(new_res["res_type"]) == 3):
+            if (res["reservation_type"] == 3) and (int(new_res["reservation_type"]) == 3):
                 error_str = "New reservation conflicts with existing reservation. (Both of them are of type 'RESERVED GPU')"
-                print("\t{}".format(error_str))
-                return True, error_str+conflict_res
+                conflict = True
+                break
 
             # if old res is RESERVED_GPU or RESERVED_FPGA and new one is DEVELOPING or RUNNING PROGRAMS
-            if ((res["reservation_type"] == 2) or (res["reservation_type"] == 3)) and ((int(new_res["res_type"]) == 4) or (int(new_res["res_type"]) == 5)):
+            if ((res["reservation_type"] == 2) or (res["reservation_type"] == 3)) and ((int(new_res["res_typreservation_typee"]) == 4) or (int(new_res["reservation_type"]) == 5)):
                 error_str = "New reservation conflicts with existing reservation. (New reservation is of type 'DEVELOPING' or 'RUNNING PROGRAMS/SIMULATIONS', which conflicts with reservations of type 'RESERVED FPGA' or 'RESERVED GPU')"
-                print("\t{}".format(error_str))
-                return True, error_str+conflict_res
+                conflict = True
+                break
 
             # if old res is DEVELOPING or RUNNING PROGRAMS and new one is RESERVED_GPU or RESERVED_FPGA 
-            if ((res["reservation_type"] == 4) or (res["reservation_type"] == 5)) and ((int(new_res["res_type"]) == 2) or (int(new_res["res_type"]) == 3)):
+            if ((res["reservation_type"] == 4) or (res["reservation_type"] == 5)) and ((int(new_res["reservation_type"]) == 2) or (int(new_res["reservation_type"]) == 3)):
                 error_str = "New reservation conflicts with existing reservation. (Existing reservation is of type 'DEVELOPING' or 'RUNNING PROGRAMS/SIMULATIONS', which conflicts with new reservation of type 'RESERVED FPGA' or 'RESERVED GPU')"
-                print("\t{}".format(error_str))
-                return True, error_str+conflict_res
-            # if 
+                conflict = True
+                break
+    
+    if conflict:
+        hostname = db.session.query(Host).get(res["hostID"]).hostname
+        username = db.session.query(User).get(res["userID"]).username
+        restypename = db.session.query(Reservation_type).get(res["reservation_type"]).name
+        begin_date = res["begin_date"]
+        end_date = res["end_date"]
 
-    return False, ""
+        new_restypenamme =  db.session.query(Reservation_type).get(new_res["reservation_type"]).name
+        
+        # log the conflict
+        logging.warning("Attempt to create a conflicting reservation by user '{}': {{reservation_type='{}', begin_date='{}', end_date='{}'}}. Conflict with previous reservation: {{hostname='{}', username='{}', reservation_type='{}', begin_date='{}', end_date='{}'}}".format(log_args["user"], new_restypenamme, new_res["begin_date"], new_res["end_date"], hostname, username, restypename, begin_date, end_date))
+
+        conflict_res = " Conflicting reservation (hostname='{}', username='{}', reservation_type='{}', begin_date='{}', end_date='{}')".format(hostname, username, restypename, begin_date, end_date)
+
+        return True, error_str+conflict_res
+    else:
+        return False, ""
 
 def check_hostStatusNextWeek(hostID, log_args={}):
     from datetime import datetime, timedelta

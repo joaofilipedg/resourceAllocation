@@ -1,4 +1,11 @@
+import logging 
 from logging.config import dictConfig
+
+from flask_app.src.global_stuff import DEBUG_MODE
+
+LOG_UDPATE_FORMAT_STR = "'{}'->'{}'"
+LOG_UDPATE_FORMAT = "{}->{}"
+
 
 """
 Based on: https://github.com/tenable/flask-logging-demo
@@ -102,3 +109,29 @@ class LogSetup(object):
             "handlers": logging_handler["handlers"],
         }
         dictConfig(log_config)
+
+
+
+def dict_to_str(dict_aux, type_str):
+    str_aux = ""
+    for key in dict_aux.keys():
+        if str_aux != "":
+            str_aux += ", "
+        if (type_str == "INSERT") and (key not in ["gpu", "fpga"]):
+            str_aux += "{}:'{}'".format(key, dict_aux[key])
+        else:
+            str_aux += "{}:{}".format(key, dict_aux[key])
+    return str_aux
+
+
+def write_log(log_args, type_str, table_name):
+    if not DEBUG_MODE:
+        if log_args != {}:
+            log_args["app"].logger.infosql("username:'{user}', {type} in Table:'{table}', values={{ {values} }}".format(user=log_args["user"], type=type_str, table=table_name, values=dict_to_str(log_args["values"], type_str)))
+
+def write_log_exception(error):
+    if not DEBUG_MODE:
+        logging.critical("Something awful happened", exc_info=True)
+    else:
+        print(error)
+    return -1

@@ -47,8 +47,8 @@ def new_component():
         return redirect(url_for('app_routes.edit_components', _external=True, _scheme='https'))
 
     new_comp["type"] = request.form["comptype"]
-    new_comp["brand"] = request.form["compbrand"]
-    new_comp["gen"] = request.form["compgen"]
+    new_comp["manufacturer"] = request.form["compbrand"]
+    new_comp["generation"] = request.form["compgen"]
 
     insert_newEntry(Component, new_comp, log_args=log_args)
 
@@ -61,7 +61,7 @@ def remove_component():
     username = current_user.username
     log_args = {"app": current_app, "user": username}
 
-    componentID = request.get_json().get("comp_id", "")
+    componentID = int(request.get_json().get("comp_id", ""))
     del_component(componentID, log_args=log_args)
     
     return "OK"
@@ -74,7 +74,7 @@ def update_component():
     log_args = {"app": current_app, "user": username}
 
     args = request.get_json()
-    componentID = args.get("id", "")
+    componentID = int(args.get("id", ""))
     name = args.get("name", "")
     manufacturer = args.get("brand", "")
     gen = args.get("gen", "")

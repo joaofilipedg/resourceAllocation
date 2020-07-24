@@ -70,7 +70,8 @@ function editHost(btn) {
         // change element to input
         var input_name = document.createElement('input');
         input_name.type = 'text';
-        input_name.id = "myInputname";
+        input_name.id = "myInput-name";
+        input_name.classList.add("myInput");
         input_name.value = name.innerHTML;
         name.innerHTML = '';
         name.appendChild(input_name);
@@ -79,7 +80,8 @@ function editHost(btn) {
         // change element to input
         var input_ip = document.createElement('input');
         input_ip.type = 'text';
-        input_ip.id = "myInputip";
+        input_ip.id = "myInput-ip";
+        input_ip.classList.add("myInput");
         input_ip.value = ip.innerHTML;
         ip.innerHTML = '';
         ip.appendChild(input_ip);
@@ -93,8 +95,8 @@ function editHost(btn) {
     } else {
         if (host_id == editdb_edit_host) {
             // confirm was pressed
-            var name_input = document.getElementById("myInputname");
-            var ip_input = document.getElementById("myInputip");
+            var name_input = document.getElementById("myInput-name");
+            var ip_input = document.getElementById("myInput-ip");
 
             var selected_name = name_input.value;
             var selected_ip = ip_input.value;
@@ -248,19 +250,22 @@ function editComponent(btn) {
         var input_name = document.createElement('input');
         input_name.type = 'text';
         input_name.id = "myInput-name";
+        input_name.classList.add("myInput");
         input_name.value = name.innerHTML;
         name.innerHTML = '';
         name.appendChild(input_name);
-
+        
         var input_gen = document.createElement('input');
         input_gen.type = 'text';
         input_gen.id = "myInput-gen";
+        input_gen.classList.add("myInput");
         input_gen.value = gen.innerHTML;
         gen.innerHTML = '';
         gen.appendChild(input_gen);
-
+        
         var input_brand = document.createElement('input');
         input_brand.type = 'text';
+        input_brand.classList.add("myInput");
         input_brand.id = "myInput-brand";
         input_brand.value = brand.innerHTML;
         brand.innerHTML = '';

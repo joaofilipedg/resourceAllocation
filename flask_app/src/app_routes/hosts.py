@@ -23,8 +23,6 @@ def edit_hosts():
     log_args = {"app": current_app, "user": username}
 
     full_list_hosts = get_fullListHosts(log_args=log_args)
-    print("BLAH")
-    print(full_list_hosts)
 
     dict_cpus = get_listComponents(CODE_CPU, log_args=log_args)
     dict_gpus = get_listComponents(CODE_GPU, log_args=log_args)
@@ -48,14 +46,11 @@ def edit_hosts():
     #         dict_hostgpus[entry[0]].append(entry[2])
     #     else:
     #         dict_hostfpgas[entry[0]].append(entry[2])
-    print(dict_hostgpus)
-    print(dict_hostfpgas)
 
     # create dictionary with usage status of each host over the next week
     dict_hosts_usage = {}
     for host in full_list_hosts:
         dict_hosts_usage[host["hostname"]] = check_hostStatusNextWeek(host["id"], log_args)
-    print(dict_hosts_usage)
 
     return render_template('layouts/edit_hosts.html', hosts_usage=dict_hosts_usage, all_hostgpus=dict_hostgpus, all_hostfpgas=dict_hostfpgas, hosts=full_list_hosts, cpus=list_cpus, cpu_ids=list_cpu_ids, num_cpus=len(list_cpus), gpus=list_gpus, gpu_ids=list_gpu_ids, num_gpus=len(list_gpus), fpgas=list_fpgas, fpga_ids=list_fpga_ids, num_fpgas=len(list_fpgas))
 
@@ -66,10 +61,10 @@ def toggle_enable_host():
     username = current_user.username
     log_args = {"app": current_app, "user": username}
 
-    hostID = request.get_json().get("host_id", "")
-    print(hostID)
+    hostID = int(request.get_json().get("host_id", ""))
 
     update_toggleEnableHost(hostID, log_args=log_args)
+
     return "OK"
 
 # Remove specific Host (POST only)
@@ -79,8 +74,7 @@ def remove_host():
     username = current_user.username
     log_args = {"app": current_app, "user": username}
 
-    hostID = request.get_json().get("host_id", "")
-    print(hostID)
+    hostID = int(request.get_json().get("host_id", ""))
 
     del_host(hostID, log_args=log_args)
     return "OK"
@@ -93,25 +87,15 @@ def update_host():
     log_args = {"app": current_app, "user": username}
 
     args = request.get_json()
-    print("HEEEEEEE")
-    print(args)
+
     hostID = int(args.get("id", ""))
     hostname = args.get("hostname", "")
-    ipaddr = args.get("ip", "")
+    ipaddr = int(args.get("ip", ""))
     cpu = int(args.get("cpu", "")[0])
-    gpu = args.get("gpu", "")
-    fpga = args.get("fpga", "")
+    gpus = args.get("gpu", "")
+    fpgas = args.get("fpga", "")
 
-    # TODO:
-    # print(hostname)
-    # print(ipaddr)
-    # print(cpu)
-    # print(gpu)
-    # print(fpga)
-    optional_comps = {"gpu": gpu, "fpga": fpga}
-    print(optional_comps)
-
-    update_configHost(hostID, hostname, ipaddr, cpu, optional_comps, log_args=log_args)
+    update_configHost(hostID, hostname=hostname, ip=ipaddr, cpu=cpu, gpus=gpus, fpgas=fpgas, log_args=log_args)
 
     return "OK"
 
@@ -136,11 +120,11 @@ def new_host():
         flash("ERROR: Host {} is already registered!".format(new_host["hostname"]))
         return redirect(url_for('app_routes.edit_hosts', _external=True, _scheme='https'))
     
-    new_host["ipaddr"] = request.form["ipaddr"]
+    new_host["ip"] = request.form["ipaddr"]
     
     # check if ipaddr is already in use
-    if int(new_host["ipaddr"]) in list_ipaddrs:
-        flash("ERROR: IP address X.X.X.{} is already being used!".format(new_host["ipaddr"]))
+    if int(new_host["ip"]) in list_ipaddrs:
+        flash("ERROR: IP address X.X.X.{} is already being used!".format(new_host["ip"]))
         return redirect(url_for('app_routes.edit_hosts', _external=True, _scheme='https'))
 
     new_host["cpu"] = request.form["cpu"]
@@ -165,6 +149,8 @@ def new_host():
             if int(new_host_gpu) not in list_gpu_ids:
                 flash( "ERROR: GPU ID is not valid!")
                 return redirect(url_for('app_routes.edit_hosts', _external=True, _scheme='https'))
+    else:
+        new_host["gpu"] = []
 
     # confirms if there was an FPGA selected
     if "hasfpga" in form_keys:
@@ -177,9 +163,10 @@ def new_host():
             if int(new_host_fpga) not in list_fpga_ids:
                 flash("ERROR: FPGA ID is not valid!")
                 return redirect(url_for('app_routes.edit_hosts', _external=True, _scheme='https'))
+    else:
+        new_host["fpga"] = []
 
     # EVERYTHING IS VALID
-    print(new_host)
     insert_newEntry(Host, new_host, log_args=log_args)
 
     return redirect(url_for('app_routes.edit_hosts', _external=True, _scheme='https'))

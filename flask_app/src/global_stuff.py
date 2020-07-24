@@ -11,11 +11,5 @@ def read_csv(file, delimiter):
             values.append(row)
     return values
 
-def dict_to_str(dict_aux):
-    str_aux = ""
-    for key in dict_aux.keys():
-        if str_aux != "":
-            str_aux += ", "
-        str_aux += "{}:{}".format(key, dict_aux[key])
-    return str_aux
+
 # def safeFunctionCall()

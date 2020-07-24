@@ -71,9 +71,9 @@ def new_reservation():
     #     # return "ERROR: User '{}' does not exist!".format(new_reservation["user"])
 
     # Get the rest of the form fields
-    new_reservation["hostID"] = request.form["host"]
+    new_reservation["hostID"] = int(request.form["host"])
     # new_reservation["host"] = request.form["host"]
-    new_reservation["reservation_type"] = request.form["res_type"]
+    new_reservation["reservation_type"] = int(request.form["res_type"])
     datetimes = request.form["datetimes"]
     datetimes = datetimes.split(" - ")
     new_reservation["begin_date"] = datetimes[0]
@@ -86,7 +86,7 @@ def new_reservation():
         return redirect(url_for('app_routes.reservations', _external=True, _scheme='https'))
     
     # Checks for conflicts (Return True if there is a conflict)
-    conflict, conflict_str = check_conflictsNewReservation(new_reservation, log_args)
+    conflict, conflict_str = check_conflictsNewReservation(new_reservation, log_args=log_args)
     if not conflict:
         # Add reservation to DB
         new_res_obj = insert_newEntry(Reservation, new_reservation, log_args=log_args)
@@ -119,7 +119,7 @@ def cancel_reservation():
     print(res_obj)
 
     # remove the entry from the db
-    manual_removeReservation(res_obj, log_args)
+    manual_removeReservation(res_obj, final=True, log_args=log_args)
     
     # TODO: Maybe flash green here?
 
@@ -133,7 +133,7 @@ def remove_reservation_type():
     username = current_user.username
     log_args = {"app": current_app, "user": username}
 
-    restypeID = request.get_json().get("res_id", "")
+    restypeID = int(request.get_json().get("res_id", ""))
     
     del_restype(restypeID, log_args=log_args)
 
@@ -147,7 +147,7 @@ def update_reservation_type():
     log_args = {"app": current_app, "user": username}
 
     args = request.get_json()
-    restypeID = args.get("id", "")
+    restypeID = int(args.get("id", ""))
     name = args.get("name", "")
     description = args.get("description", "")
 

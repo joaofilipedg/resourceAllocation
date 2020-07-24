@@ -83,10 +83,10 @@
   width: 95%;
 } */
 
-#myInputip {
+input[type="text"].myInput {
   padding: 0 0;
   margin: 0 0;
-  width: 50%;
+  width: 95%;
   align-self: center;
   text-align: center;
 }
@@ -141,10 +141,10 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .hosts-table .row {
+  .hosts-table .row, .hosts-table .row-admin {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
-  .comps-table .row {
+  .comps-table .row, .comps-table .row-admin {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }

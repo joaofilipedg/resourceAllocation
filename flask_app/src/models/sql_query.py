@@ -1,5 +1,3 @@
-import logging
-
 from flask_app.app import db
 from flask_app.src.models import User, Host, Component, Reservation_type, Reservation
 
