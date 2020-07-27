@@ -1,5 +1,10 @@
 {% extends 'layouts/base.html' %}
 
+{% block header %}
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
+{% endblock %}
+
+
 {% block body %}
     {% if current_user.is_authenticated %}
         <div class="container">
@@ -34,7 +39,7 @@
                                 <div class="col">{{res["begin_date"]}}</div>
                                 <div class="col">{{res["end_date"]}}</div>
                                 <div class="col">
-                                    <button type="submit" class="cancelBtn" name="btncancel" value={{res[5]}}>Cancel</button>
+                                    <button type="submit" class="cancelBtn" name="btncancel" value={{res["id"]}}>Cancel</button>
                                 </div>
                             </div>
                             {%endfor%}

@@ -45,7 +45,8 @@ function cancelReservation(res_id) {
             data: JSON.stringify(data),
             success: function () {
                 alert("Reservation successfully removed.");
-                window.location = "/reservations";
+                location.reload();
+                return false;
             },
             error: function() {
                 alert("error");

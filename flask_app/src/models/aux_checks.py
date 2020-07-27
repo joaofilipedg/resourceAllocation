@@ -70,7 +70,7 @@ def check_conflictsNewReservation(new_res, log_args={}):
         new_restypenamme =  db.session.query(Reservation_type).get(new_res["reservation_type"]).name
         
         # log the conflict
-        write_log_warning("{template_warning}: {{reservation_type='{new_rt}', begin_date='{new_bd}', end_date='{new_ed}'}}. Conflict with previous reservation: {{hostname='{host}', username='{db_user}', reservation_type='{db_rt}', begin_date='{db_bd}', end_date='{db_ed}'}}".format(template_warning=BAD_RESERVATION_STR.format(entry="reservation", username=log_args["user"]), new_rt=new_restypenamme, new_bd=new_res["begin_date"], new_ed=new_res["end_date"], host=hostname, db_user=username, db_rt=restypename, db_bd=begin_date, db_ed=end_date))
+        write_log_warning("{template_warning}: {{reservation_type='{new_rt}', begin_date='{new_bd}', end_date='{new_ed}'}}. Conflict with previous reservation: {{hostname='{host}', username='{db_user}', reservation_type='{db_rt}', begin_date='{db_bd}', end_date='{db_ed}'}}".format(template_warning=BAD_NEWENTRY_STR.format(entry="reservation", username=log_args["user"]), new_rt=new_restypenamme, new_bd=new_res["begin_date"], new_ed=new_res["end_date"], host=hostname, db_user=username, db_rt=restypename, db_bd=begin_date, db_ed=end_date))
 
         conflict_res = " Conflicting reservation (hostname='{}', username='{}', reservation_type='{}', begin_date='{}', end_date='{}')".format(hostname, username, restypename, begin_date, end_date)
         
